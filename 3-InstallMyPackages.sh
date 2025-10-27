@@ -1,5 +1,25 @@
 #!/bin/bash
 
-sudo pacman -S --needed --noconfirm autotiling azote base base-devel amd-ucode autotiling azote base base-devel brightnessctl btop calcurse dex ffmpegthumbnailer figlet file-roller firefox foot fuse2 git glibc-locales gnome-disk-utility gparted greetd-tuigreet grim grub gst-plugin-pipewire gtk4 guvcview gvfs htop hunspell hunspell-el hunspell-en_us hyprland inetutils inotify-tools iwd keepassxc kvantum kvantum-theme-materia lib32-gnutls libadwaita libjpeg6-turbo libpulse libtiff4 libutempter libva-mesa-driver linux-firmware linux-headers linux-lts lxsession man-db man-pages man-pages-el materia-gtk-theme materia-kde mono mpd mpv nano ncmpcpp network-manager-applet networkmanager nwg-displays nwg-drawer nwg-icon-picker nwg-look obsidian okular os-prober otf-font-awesome p7zip pavucontrol pipewire pipewire-alsa pipewire-jack pipewire-pulse qalculate-gtk qbittorrent qpwgraph qt5ct qt6ct ripgrep-all slurp smartmontools speech-dispatcher swaybg swayidle swayimg swaync thunar thunar-archive-plugin thunar-media-tags-plugin thunar-vcs-plugin thunar-volman tumbler unzip virtualbox vulkan-radeon waybar wget wireless_tools wireplumber wlsunset xarchiver xdg-desktop-portal-hyprland xdg-desktop-portal-wlr xed xf86-video-amdgpu xf86-video-ati xfce4-clipman-plugin xorg-server xorg-xinit xorg-xwayland zram-generator zsh mame power-profiles-daemon nano-syntax-highlighting grsync timeshift gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd
+DESKTOP_REPO='autotiling nitrogen brightnessctl dex dunst lxsession network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon flameshot rofi '
+DESKTOP_AUR='aarchup '
 
-yay -S --needed --noconfirm aarchup cava freeoffice naps2 pacseek pyradio scenefx nomacs sway-input-config swayfx swaylock-effects-git wl-color-picker flameshot-git
+THEME_REPO='kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt5ct qt6ct '
+
+FILES_REPO='nnn gvfs thunar thunar-archive-plugin thunar-media-tags-plugin thunar-vcs-plugin thunar-volman tumbler unzip xarchiver gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd '
+
+MAN_REPO='man-db man-pages man-pages-el '
+
+GUI_APPS_REPO='firefox okular obsidian qpwgraph '
+GUI_APPS_AUR='visual-studio-code-bin naps2 '
+
+# TUI Applications pacman
+TUI_APPS_REPO='mame micro nvim '
+TUI_APPS+AUR='pacseek pyradio '
+
+CLI_TOOLS_REPO='fish figlet fastfetch rsync '
+CLI_TOOLS_AUR='cava '
+
+# Multimedia
+MULTIMEDIA_REPO='mpv feh' 
+
+

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DESKTOP_REPO='autotiling nitrogen brightnessctl dex dunst lxsession network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon flameshot rofi ttf-jetbrains-mono-nerd calcurse htop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty'
+DESKTOP_REPO='autotiling nitrogen brightnessctl dex dunst lxsession network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick'
 DESKTOP_AUR='aarchup '
 
 THEME_REPO='kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt5ct qt6ct '

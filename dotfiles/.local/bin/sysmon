@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Default system monitor is confirued in .profile
+# xfce4-terminal --hide-scrollbar --hide-menubar --geometry=140x40 --title="System Monitor" -x $SYSTEM_MONITOR
+alacritty --title="System Monitor" -o window.dimensions.columns=140 -o window.dimensions.lines=40 -e $SYSTEM_MONITOR

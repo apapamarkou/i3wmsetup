@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DESKTOP_REPO='autotiling nitrogen brightnessctl dex dunst lxsession network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon flameshot rofi '
+DESKTOP_REPO='autotiling nitrogen brightnessctl dex dunst lxsession network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon flameshot rofi ttf-jetbrains-mono-nerd calcurse htop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty'
 DESKTOP_AUR='aarchup '
 
 THEME_REPO='kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt5ct qt6ct '
@@ -10,12 +10,12 @@ FILES_REPO='nnn gvfs thunar thunar-archive-plugin thunar-media-tags-plugin thuna
 MAN_REPO='man-db man-pages man-pages-el '
 
 GUI_APPS_REPO='firefox okular obsidian qpwgraph keepassxc mousepad'
-GUI_APPS_AUR='visual-studio-code-bin naps2 '
+GUI_APPS_AUR='visual-studio-code-bin naps2 onlyoffice-bin'
 
 TUI_APPS_REPO='mame micro nvim '
 TUI_APPS+AUR='pacseek-bin pyradio '
 
-CLI_TOOLS_REPO='fish figlet fastfetch rsync bc cmatrix '
+CLI_TOOLS_REPO='fish figlet fastfetch rsync bc cmatrix inetutils plocate'
 CLI_TOOLS_AUR='cava '
 
 # Multimedia

@@ -4,23 +4,27 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Setup git
-$SCRIPT_DIR/scripts/git.sh
+$SCRIPT_DIR/src/git.sh
 # enable Greek language support
-$SCRIPT_DIR/scripts/scripts/greek.sh
+$SCRIPT_DIR/src/scripts/greek.sh
 # change display manager to TUI Greeter
-$SCRIPT_DIR/scripts/scripts/greet.sh
+$SCRIPT_DIR/src/scripts/greet.sh
 # Enable password feedback
-$SCRIPT_DIR/scripts/scripts/password-feedback.sh
+$SCRIPT_DIR/src/scripts/password-feedback.sh
 # Make the update-grub command
-$SCRIPT_DIR/scripts/update-grub.sh
+$SCRIPT_DIR/src/update-grub.sh
 # Install yay
-$SCRIPT_DIR/scripts/yay.sh
+$SCRIPT_DIR/src/yay.sh
 # Install wine
-$SCRIPT_DIR/scripts/wine.sh
+$SCRIPT_DIR/src/wine.sh
 # Install pro-audio support
-$SCRIPT_DIR/scripts/pro-audio.sh
+$SCRIPT_DIR/src/pro-audio.sh
 # Install all my packages
-$SCRIPT_DIR/scripts/InstallMyPackages.sh
+$SCRIPT_DIR/src/InstallMyPackages.sh
 # Change shell to fish
 chsh -s /usr/bin/fish
-$SCRIPT_DIR/scripts/copy-dotfiles.sh
+$SCRIPT_DIR/src/copy-dotfiles.sh $SCRIPT_DIR
+
+sudo systemctl enable power-profiles-daemon
+sudo systemctl start power-profiles-daemon
+sudo updatedb

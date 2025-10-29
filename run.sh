@@ -6,19 +6,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Setup git
 $SCRIPT_DIR/src/git.sh
 # enable Greek language support
-$SCRIPT_DIR/src/scripts/greek.sh
+$SCRIPT_DIR/src/greek.sh
 # change display manager to TUI Greeter
-$SCRIPT_DIR/src/scripts/greet.sh
+$SCRIPT_DIR/src/greet.sh
 # Enable password feedback
-$SCRIPT_DIR/src/scripts/password-feedback.sh
+$SCRIPT_DIR/src/password-feedback.sh
 # Make the update-grub command
 $SCRIPT_DIR/src/update-grub.sh
 # Install yay
 $SCRIPT_DIR/src/yay.sh
 # Install wine
-$SCRIPT_DIR/src/wine.sh
+# $SCRIPT_DIR/src/wine.sh
 # Install pro-audio support
-$SCRIPT_DIR/src/pro-audio.sh
+# $SCRIPT_DIR/src/pro-audio.sh
 # Install all my packages
 $SCRIPT_DIR/src/InstallMyPackages.sh
 # Change shell to fish

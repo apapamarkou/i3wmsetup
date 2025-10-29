@@ -10,13 +10,13 @@ FILES_REPO='nnn gvfs thunar thunar-archive-plugin thunar-media-tags-plugin thuna
 MAN_REPO='man-db man-pages man-pages-el '
 
 GUI_APPS_REPO='firefox okular obsidian qpwgraph keepassxc mousepad '
-GUI_APPS_AUR='visual-studio-code-bin naps2 onlyoffice-bin '
+# GUI_APPS_AUR='visual-studio-code-bin naps2 onlyoffice-bin '
 
 TUI_APPS_REPO='mame micro nvim '
-TUI_APPS_AUR='pacseek-bin pyradio '
+# TUI_APPS_AUR='pacseek-bin pyradio '
 
 CLI_TOOLS_REPO='fish figlet fastfetch rsync bc cmatrix inetutils plocate '
-CLI_TOOLS_AUR='cava '
+# CLI_TOOLS_AUR='cava '
 
 # Multimedia
 MULTIMEDIA_REPO='mpv feh ' 

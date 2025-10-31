@@ -1,6 +1,6 @@
 # ❯ Fancy Greeting (on shell startup)
 function fish_greeting
-    fetch
+    $SHELL_GREETING
 end
 
 # ❯ Git-aware Fancy Prompt using Starship (recommended)
@@ -15,12 +15,6 @@ else
     end
 end
 
+source ~/.local/share/shell/fzf-cdf.fish
+source ~/.local/share/shell/aliases
 
-alias ls="lsd"
-alias update="sudo pacman -Syu"
-alias cls="clear"
-alias edit="micro"
-alias ed="micro"
-alias install="sudo pacman -S --needed"
-alias i3conf="micro ~/.config/i3/config"
-alias fishconf="micro ~/.config/fish/config.fish"

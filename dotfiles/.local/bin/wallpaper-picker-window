@@ -1,0 +1,3 @@
+#!/bin/bash
+
+alacritty --title="Wallpaper Picker" -o window.dimensions.columns=80 -o window.dimensions.lines=20 -e wallpaper-picker

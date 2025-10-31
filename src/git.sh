@@ -1,8 +1,5 @@
 #!/bin/bash
 
-clear
-
-
 # Username setup
 read -p "Enter a name for Git (leave blank to pass): " user_name
 # Check if not empty

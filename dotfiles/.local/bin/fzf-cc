@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# -------- CONFIG --------
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+MUSIC_DIR="$HOME/Music"
+# ------------------------
+
+change() {
+    local monitor="$1"
+    local file="$HOME/.profile" 
+
+    if grep -q '^export SYSTEM_MONITOR=' "$file"; then
+        if sed --version >/dev/null 2>&1; then
+            sed -i "s|^export SYSTEM_MONITOR=.*|export SYSTEM_MONITOR=\"$monitor\"|" "$file"
+        else
+            sed -i '' "s|^export SYSTEM_MONITOR=.*|export SYSTEM_MONITOR=\"$monitor\"|" "$file"
+        fi
+        notify-send "✅ System monitor changed to $1. The change will be available at the next login."
+    else
+        echo "export SYSTEM_MONITOR=\"$monitor\"" >> "$file"
+	fi
+}
+
+system_monitor_menu() {
+    local ACTION
+    ACTION=$(printf '󰍹 top\n󰷜 htop\n󰨇 btop\n Back' | fzf --layout=reverse --prompt='⚙️ > ' --height=40)
+    
+    case "$ACTION" in
+        '󰍹 top') change top ;;
+        '󰷜 htop') change htop ;;
+        '󰨇 btop') change btop ;;
+        *) return ;;  # Back ή κενή επιλογή
+    esac
+}
+
+power_monitor_menu() {
+	local ACTION
+	ACTION=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt='⚙️ System > ' --height=40%);
+	case "$ACTION" in
+		' Lock') i3lock ;;
+		'󰗽 Logout') i3-msg exit ;;
+		' Reboot') systemctl reboot ;;
+		'⏻ Poweroff') systemctl poweroff ;;
+	esac
+}
+
+
+
+MENU_NAMES=(
+	"Displays"
+    "󰸉 Wallpaper Picker"
+    " System Monitor"
+    "󰀂 Network"
+    "󰗅 Sound"
+    "󰤄 Power Profiles"
+    "󰐥 Power Menu"
+    "❌ Exit"
+)
+
+MENU_COMMANDS=(
+	arandr
+    wallpaper-picker-window
+    system_monitor_menu
+	netconf
+	soundcontrol
+	powerprofileswindow
+    power_monitor_menu
+    exit 0
+)
+
+
+
+while true; do
+    choice=$(printf "%s\n" "${MENU_NAMES[@]}" | fzf --layout=reverse --prompt="  > " --height=50% --border --ansi)
+
+    # Exit if Esc or no selection
+    [ -z "$choice" ] && exit 0
+
+    for i in "${!MENU_NAMES[@]}"; do
+        if [[ "$choice" == "${MENU_NAMES[$i]}" ]]; then
+            # Exit explicitly if selected
+            [[ "$choice" == "❌ Exit" ]] && exit 0
+            eval "${MENU_COMMANDS[$i]}"
+            break
+        fi
+    done
+done

@@ -33,7 +33,7 @@ These operations apply to the currently highlighted item or prompt for input.
 | Action | Keybinding | Function |
 | :--- | :--- | :--- |
 | **Create Directory** | `D` | Prompts you to enter a new directory name. |
-| **Create File** | `e` | Prompts you to enter a new file name. |
+| **Create File/Folder** | `n` | Prompts you to choose file or folder and then to give a name. |
 | **Rename** (Highlighted) | `^R` (Ctrl + `r`) | Prompts to rename the currently highlighted file or folder. |
 | **Delete** (Selected/Highlighted) | `^X` (Ctrl + `x`) | Prompts for confirmation to permanently delete the selected or highlighted item(s). |
 
@@ -44,4 +44,5 @@ These operations apply to the currently highlighted item or prompt for input.
 | **Enter Directory/Open File** | `Enter` or `l` | Enters a directory or opens a file with the associated program. |
 | **Go Up Directory** | `Left Arrow` or `h` | Moves one level up in the directory structure. |
 | **Show Help/Keybinds** | `?` | Displays a quick reference guide of all nnn keybindings. |
-| **Run Shell Command** | `!` | Prompts for a shell command to execute in the current directory. |
+| **Run Shell Command** | `]` | Prompts for a shell command to execute in the current directory. |
+| **Run Shell Command** | `!` | Opens a shell in the current directory. |

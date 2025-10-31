@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DESKTOP_REPO='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift geoclue '
+DESKTOP_REPO='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa '
 # DESKTOP_AUR='aarchup '
 
 THEME_REPO='kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt6ct '

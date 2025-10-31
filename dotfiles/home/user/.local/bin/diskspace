@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Default system monitor is confirued in .profile
+#xfce4-terminal --hide-scrollbar --hide-menubar --geometry=140x40 --title="Disk Space Explorer" -x dua i
+alacritty --title="Disk Space Explorer" -o window.dimensions.columns=140 -o window.dimensions.lines=40 -e dua i

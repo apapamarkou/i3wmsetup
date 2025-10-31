@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# File paths
+CONFIG_FILE="$HOME/.config/pipewire/pipewire.conf"
+AVAILABLE_FILE="/usr/share/pipewire/pipewire.conf.avail/10-rates.conf"
+
+# Ensure config directory and file exist
+mkdir -p "$(dirname "$CONFIG_FILE")"
+touch "$CONFIG_FILE"
+
+# 1. Read available rates from the file
+# Correction: Use 'xargs' instead of 'tr ' ' '\n'' to get a clean, single-line,
+# space-separated string, which 'read -r -a' handles perfectly.
+AVAILABLE_RATES=$(grep 'default.clock.allowed-rates' "$AVAILABLE_FILE" | grep -oP '\[.*?\]' | tr -d '[]' | xargs)
+
+if [[ -z "$AVAILABLE_RATES" ]]; then
+    echo "❌ Could not read available sample rates from $AVAILABLE_FILE!"
+    exit 1
+fi
+
+# 2. Convert space-separated string to an array
+# This line now reliably splits the space-separated string into the array SAMPLE_RATES
+read -r -a SAMPLE_RATES <<< "$AVAILABLE_RATES"
+
+# 3. Detect current active rate
+current_rate=""
+
+# Primary Source (as requested): Read rate from the user's config file
+current_rate=$(grep 'default.clock.rate' "$CONFIG_FILE" | awk '{print $3}' | tr -d '[:space:]')
+
+# Secondary Source (Fallback): Detect current active rate from default sink (via pactl)
+if [[ -z "$current_rate" ]]; then
+    default_sink=$(timeout 1 pactl info 2>/dev/null | awk -F': ' '/Default Sink/ {print $2}')
+    if [[ -n "$default_sink" ]]; then
+        current_rate=$(timeout 1 pactl list sinks 2>/dev/null | awk -v sink="$default_sink" '
+            $0 ~ "Name: " sink {found=1}
+            found && /Sample Specification:/ {print $3; exit}
+        ' | cut -d'.' -f1)
+    fi
+fi
+
+# Final Fallback: use first available rate if neither configuration nor active sink provides a rate
+[[ -z "$current_rate" ]] && current_rate="${SAMPLE_RATES[0]}"
+
+# 4. Build fzf list
+LIST=()
+for rate in "${SAMPLE_RATES[@]}"; do
+    if [[ "$rate" == "$current_rate" ]]; then
+        LIST+=("✅  $rate Hz (Current)")
+    else
+        LIST+=(".   $rate Hz")
+    fi
+done
+
+# 5. Let user select
+CHOICE=$(printf "%s\n" "${LIST[@]}" | fzf --prompt=" Select Sample Rate > " --height=40% --layout=reverse)
+[[ -z "$CHOICE" ]] && echo "No selection made." && exit 0
+
+RATE=$(echo "$CHOICE" | awk '{print $2}')
+
+# 6. Update default.clock.rate in config file
+RATE_LINE="default.clock.rate = $RATE"
+if grep -q 'default.clock.rate' "$CONFIG_FILE"; then
+    sed -i "s|default.clock.rate.*|$RATE_LINE|" "$CONFIG_FILE"
+else
+    if grep -q 'context.properties' "$CONFIG_FILE"; then
+        sed -i "/context.properties/ a\\$RATE_LINE" "$CONFIG_FILE"
+    else
+        # If no context.properties block exists, create it with the rate
+        echo -e "context.properties = {\n$RATE_LINE\n}" >> "$CONFIG_FILE"
+    fi
+fi
+
+# 7. restart pipewire to make changes
+systemctl --user stop pipewire pipewire-pulse
+systemctl --user start pipewire pipewire-pulse
+clear
+notify-send "Amplerate changed to $RATE Khz"

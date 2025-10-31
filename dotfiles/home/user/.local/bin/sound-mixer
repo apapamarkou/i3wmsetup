@@ -1,0 +1,3 @@
+#!/bin/bash
+
+alacritty --title="Sound Control" -o window.dimensions.columns=80 -o window.dimensions.lines=24 -e $SOUND_CONFIG

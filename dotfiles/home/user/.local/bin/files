@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# xfce4-terminal --title="Files" -x nnn "$1"
+alacritty --title="Files" -e nnn "$1"

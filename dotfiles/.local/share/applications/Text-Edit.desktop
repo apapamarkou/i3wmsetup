@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=TextEditor
-Exec=/home/user/.local/bin/editor %f
-Type=Application
-MimeType=application/x-fishscript;application/x-shellscript;text/plain;
-NoDisplay=false

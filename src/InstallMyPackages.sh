@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DESKTOP_REPO='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa '
+DESKTOP_REPO='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship'
 # DESKTOP_AUR='aarchup '
 
 THEME_REPO='kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt6ct '
@@ -15,7 +15,7 @@ GUI_APPS_REPO='firefox qpwgraph keepassxc '
 TUI_APPS_REPO='mame micro nvim '
 # TUI_APPS_AUR='pacseek-bin pyradio '
 
-CLI_TOOLS_REPO='fish figlet fastfetch rsync bc cmatrix inetutils plocate '
+CLI_TOOLS_REPO='fish zsh figlet fastfetch rsync bc cmatrix inetutils plocate '
 # CLI_TOOLS_AUR='cava '
 
 MULTIMEDIA_REPO='mpv feh ' 

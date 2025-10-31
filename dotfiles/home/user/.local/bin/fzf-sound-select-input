@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# List all input devices (sources)
+sources=$(pactl list short sources | awk '{print $2 " | " $1}')
+
+# Let user select a source
+selection=$(echo "$sources" | fzf --prompt="  Select default input > " --height=40% --layout=reverse)
+
+# Exit if nothing selected
+[[ -z "$selection" ]] && echo "No source selected." && exit 0
+
+# Extract source name
+source_name=$(echo "$selection" | awk -F'|' '{print $2}' | xargs)
+
+# Set default source
+pactl set-default-source "$source_name"
+
+echo "✅ Default input set to $source_name"
+notify-send "  Default input set to $source_name"

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+clear
+
+[[ ! -f /etc/locale.gen ]] && echo "/etc/locale.gen not found!" && exit 1
+
+tmpfile=$(mktemp)
+
+# Βρες το τρέχον system locale
+current_locale=$(localectl status | grep "System Locale" | awk -F= '{print $2}' | xargs)
+
+while IFS= read -r rawline; do
+    [[ -z "$rawline" ]] && continue
+
+    line="$rawline"
+    status="✅"
+    if [[ "$line" =~ ^# ]]; then
+        status="❌"
+        line="${line#\#}"
+        line="${line#"${line%%[![:space:]]*}"}"
+    fi
+
+    code=$(echo "$line" | cut -d' ' -f1)
+    [[ -z "$code" ]] && continue
+
+    display_name="$code"
+    # Σήμανση αν είναι το ενεργό system locale
+    [[ "$code" == "$current_locale" ]] && display_name="$display_name (ACTIVE)"
+
+    printf "%s | %s | %s\n" "$status" "$display_name" "$code" >> "$tmpfile"
+done < <(tail -n +18 /etc/locale.gen)
+
+choice=$(sort "$tmpfile" | fzf --prompt=" Select Language > " --height=100% --layout=reverse --with-nth=1,2,3)
+rm -f "$tmpfile"
+
+[[ -z "$choice" ]] && exit 0
+
+locale=$(echo "$choice" | awk -F'|' '{print $3}' | xargs)
+
+# Αν η επιλογή είναι ήδη το system locale → απενεργοποίησε
+if [[ "$locale" == "$current_locale" ]]; then
+    sudo sed -i "s|^$locale|#$locale|" /etc/locale.gen
+    sudo locale-gen
+    # Προαιρετικά: θέτουμε system locale σε C.UTF-8
+    sudo localectl set-locale LANG=C.UTF-8
+    notify-send "✅ Locale $locale deactivated, system locale set to C.UTF-8"
+    exit 0
+fi
+
+# Αν είναι σχολιασμένο, uncomment
+if grep -q "^# *$locale" /etc/locale.gen; then
+    sudo sed -i "s|^# *$locale|$locale|" /etc/locale.gen
+fi
+
+# Generate και apply
+sudo locale-gen "$locale"
+sudo localectl set-locale LANG="$locale"
+notify-send "✅ Language set to $locale"

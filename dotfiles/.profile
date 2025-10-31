@@ -1,11 +1,15 @@
 # default applications
 export EDITOR=/usr/bin/micro
+export SHELL_GREETING=fetch
 export VISUAL=/usr/bin/micro
 export BROWSER=firefox
 export TERM=xfce4-terminal
 export PAGER="bat"
-export SYSTEM_MONITOR=htop
+export SYSTEM_MONITOR="btop"
 export NETWORK_CONFIG=nmtui
+export SOUND_CONFIG=alsamixer
+export MUSIC_PLAYER=fzf-music-player
+export MUSIC_FOLDER=$HOME/Music
 
 # nnn file manager setup
 export NNN_USE_EDITOR=1

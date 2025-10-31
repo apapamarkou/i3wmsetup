@@ -34,12 +34,13 @@ while true; do
 
     [ -z "$SELECTED" ] && break
 
-    feh --bg-fill "$WALLPAPER_DIR/$SELECTED"
+    feh --bg-fill --no-fehbg "$WALLPAPER_DIR/$SELECTED"
 
     # Δημιουργία του script για εκκίνηση
     cat > "$DEFAULT_SCRIPT" <<EOF
 #!/bin/bash
-feh --bg-fill "$WALLPAPER_DIR/$SELECTED"
+sleep 3
+feh --bg-fill --no-fehbg "$WALLPAPER_DIR/$SELECTED"
 EOF
 
     chmod +x "$DEFAULT_SCRIPT"

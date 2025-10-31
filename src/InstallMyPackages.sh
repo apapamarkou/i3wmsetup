@@ -9,7 +9,7 @@ FILES_REPO='nnn gvfs thunar thunar-archive-plugin thunar-media-tags-plugin thuna
 
 MAN_REPO='man-db man-pages man-pages-el '
 
-GUI_APPS_REPO='firefox okular obsidian qpwgraph keepassxc '
+GUI_APPS_REPO='firefox qpwgraph keepassxc '
 #GUI_APPS_AUR='visual-studio-code-bin naps2 onlyoffice-bin '
 
 TUI_APPS_REPO='mame micro nvim '
@@ -24,3 +24,8 @@ sudo pacman -S --needed --noconfirm $DESKTOP_REPO $THEME_REPO $FILES_REPO $MAN_R
 yay -S --needed --noconfirm $DESKTOP_AUR $GUI_APPS_AUR $TUI_APPS_AUR $CLI_TOOLS_AUR
 
 sudo pacman -R --noconfirm xterm
+
+# TODO 
+# install appimage integrator
+# install okular obsidian as appimages
+

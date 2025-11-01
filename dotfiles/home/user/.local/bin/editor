@@ -1,3 +1,0 @@
-#!/bin/bash
-
-xfce4-terminal --title="Text Edit $1" -x micro "$1"

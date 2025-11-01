@@ -1,4 +1,0 @@
-#!/bin/bash
-
-APP=$(compgen -c | sort -u | fzf --prompt="🚀 Run > " --height=40%)
-[ -n "$APP" ] && setsid "$APP" >/dev/null 2>&1 &

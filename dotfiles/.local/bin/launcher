@@ -1,3 +1,0 @@
-#!/bin/bash
-
-rofi -show drun -theme ~/.config/rofi/themes/materia-dark.rasi -cycle false -scroll-method 1 -show-icons

@@ -1,3 +1,0 @@
-#!/bin/bash
-
-feh --image-bg black --scale-down --geometry 1900x1000 --start-at $1

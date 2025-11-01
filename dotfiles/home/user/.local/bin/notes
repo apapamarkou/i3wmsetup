@@ -1,6 +1,0 @@
-#!/bin/bash
-
-mkdir -p $HOME/Documents/Notes
-cd "$HOME/Documents/Notes" || exit
-NOTE=$(fzf --preview 'bat --style=numbers --color=always {}' --height=80%)
-[ -n "$NOTE" ] && nvim "$NOTE"

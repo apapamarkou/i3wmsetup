@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# xfce4-terminal --hide-scrollbar --hide-menubar --geometry=50x15 --title="Power Profile Selection" -x powerprofiles
-alacritty --title="Power Profile Selection" -o window.dimensions.columns=40 -o window.dimensions.lines=10 -e powerprofiles

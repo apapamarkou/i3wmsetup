@@ -33,7 +33,6 @@
 
 .screenlayout/default.sh
 
-Documents/Development
 Documents/Notes
 Downloads
 Music

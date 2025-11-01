@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$DIR"
+FILE="$DIR/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
+
+# Default argument: region
+MODE=${1:-region}
+
+case "$MODE" in
+    fullscreen)
+        maim | tee "$FILE" | xclip -selection clipboard -t image/png
+        ;;
+
+    region)
+        maim -s | tee "$FILE" | xclip -selection clipboard -t image/png
+        ;;
+
+    window)
+        # Active window
+        WIN_ID=$(xdotool getactivewindow)
+        maim -i "$WIN_ID" | tee "$FILE" | xclip -selection clipboard -t image/png
+        ;;
+
+    *)
+        echo "Usage: $0 [fullscreen|region|window]"
+        exit 1
+        ;;
+esac
+
+# Optional notification
+notify-send "Screenshot saved" "$FILE"

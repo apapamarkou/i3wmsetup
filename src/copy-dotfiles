@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script copies dotfiles to home directory
+# Usage: ./copy-dotfiles.sh <path to dotfiles>
+
+clear
+echo "Copying dotfiles to home directory..."
+echo "-----------------------------------"
+echos
+
+sudo pacman -S --needed --noconfirm rsync
+
+if [ -z "$1" ]; then
+    echo "Usage: ./copy-dotfiles.sh <path to dotfiles>"
+    exit 1
+fi
+
+# Copy dotfiles to home directory
+rsync -av $1/dotfiles/ $HOME/

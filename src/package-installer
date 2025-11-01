@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script installs the needed packages
+clear
+echo "Installing packages..."
+echo "---------------------"
+echo
+
+REPO_PACKAGES='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt6ct nnn feh mpv unzip man-db man-pages man-pages-el firefox qpwgraph keepassxc mame micro nvim fish zsh figlet bc cmatrix inetutils plocate '
+
+# Confirm
+read -p "Do you need a GUI file manager? (Y/n) " confirm
+if [[ $confirm =~ ^[Nn]$ ]]; then
+    REPO_PACKAGES+='thunar thunar-archive-plugin thunar-media-tags-plugin thunar-vcs-plugin thunar-volman tumbler unzip xarchiver gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd '
+else
+    REPO_PACKAGES+='nnn '
+fi
+
+YAY_PACKAGES='aarchup pacseek '
+
+# Confirm install java development
+read -p "Do you want to install Visual Studio Code? (Y/n) " confirm
+if [[ ! $confirm =~ ^[Nn]$ ]]; then
+    YAY_PACKAGES+='visual-studio-code-bin '
+    REPO_PACKAGES+='jdk21-openjdk openjdk21-doc openjdk21-src maven curl '
+fi
+
+# Confirm install DAW and plugins
+read -p "Do you want to install DAWa and plugins? (Y/n) " confirm
+if [[ ! $confirm =~ ^[Nn]$ ]]; then
+    REPO_PACKAGES+='ardour reaper sws reapack avldrums.lv2 dragonfly-reverb-lv2 musescore '
+    YAY_PACKAGES+='muse-sound-manager-bin '
+fi
+
+sudo pacman -S --needed --noconfirm $REPO_PACKAGES
+yay -S --needed --noconfirm $YAY_PACKAGES
+
+# sudo pacman -R --noconfirm xterm
+
+
+

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script istalls appimage intergator
+clear
+echo "Installing AppImage Integrator..."
+echo "--------------------------------"
+echo
+
+# Confirm
+read -p "Do you want to continue? (y/n) " confirm
+if [[ $confirm =~ ^[Nn]$ ]]; then
+    echo "Installation cancelled."
+    exit 1
+fi
+
+
+sudo pacman -S --needed --no-confirm inotify-tools git wget
+wget -qO- https://raw.githubusercontent.com/apapamarkou/appimage-integrator/main/src/appimage-integrator-install-git | bash

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+alacritty --title="I3 Desktop Control Center" -o window.dimensions.columns=50 -o window.dimensions.lines=15 -e fzf-cc

@@ -1,0 +1,17 @@
+# main config
+set $mod Mod4
+floating_modifier $mod
+tiling_drag modifier titlebar
+font pango:JetBrainsMono Nerd Font 10
+gaps inner 5px
+smart_gaps inverse_outer
+
+# include all sub-configs
+include conf.d/startup.conf
+include conf.d/keybindings-navigation.conf
+include conf.d/keybindings-applications.conf
+include conf.d/keybindings-workspaces.conf
+include conf.d/power-launcher-mode.conf
+include conf.d/screenshot-mode.conf
+include conf.d/record-mode.conf
+include conf.d/window-rules.conf

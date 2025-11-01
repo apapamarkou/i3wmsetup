@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script syncs specified files from home directory to the dotfiles directory
+# and it is ment to use by the developers of this project
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+LIST_FILE="$SCRIPT_DIR/sync-files.txt"
+DEST="$PROJECT_ROOT/dotfiles"
+
+mkdir -p "$DEST"
+
+while IFS= read -r path || [ -n "$path" ]; do
+    # Παράλειψη κενών γραμμών και σχολίων
+    [[ -z "${path// }" || "${path:0:1}" == "#" ]] && continue
+
+    SRC="$HOME/$path"
+
+    if [ -e "$SRC" ]; then
+        echo "Syncing: $SRC -> $DEST"
+        rsync -a --relative --delete "$SRC" "$DEST"
+    else
+        echo "⚠️ Missing: $SRC"
+    fi
+done < "$LIST_FILE"

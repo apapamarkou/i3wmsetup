@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# This script allows the user to easily change the default buffer size (quantum)
+# in PipeWire's configuration file ($HOME/.config/pipewire/pipewire.conf)
+# using fzf for interactive selection.
+
+# File paths
+CONFIG_FILE="$HOME/.config/pipewire/pipewire.conf"
+
+# The standard choices for default.clock.quantum, as requested (in samples)
+AVAILABLE_QUANTA="32 64 128 256 512 1024 2048"
+
+# Ensure config directory and file exist
+mkdir -p "$(dirname "$CONFIG_FILE")"
+touch "$CONFIG_FILE"
+
+# 1. Convert space-separated string to an array
+read -r -a QUANTUM_CHOICES <<< "$AVAILABLE_QUANTA"
+
+# 2. Detect current active quantum/buffer size
+current_quantum=""
+
+# Read the current default.clock.quantum from the user's config file
+# FIX: Added grep -v 'quantum-' to explicitly exclude 'quantum-limit' and 'quantum-floor' lines.
+current_quantum=$(grep 'default.clock.quantum' "$CONFIG_FILE" | grep -v 'quantum-' | head -n 1 | awk '{print $3}' | tr -d '[:space:]')
+
+# Fallback: if no rate is set in the config, use the standard default 1024
+[[ -z "$current_quantum" ]] && current_quantum="1024"
+
+# 3. Build fzf list
+LIST=()
+for quantum in "${QUANTUM_CHOICES[@]}"; do
+    if [[ "$quantum" == "$current_quantum" ]]; then
+        LIST+=("✅  $quantum samples (Current)")
+    else
+        # Using a dot for alignment to match the style of the rate selector script
+        LIST+=(".   $quantum samples")
+    fi
+done
+
+# 4. Let user select
+CHOICE=$(printf "%s\n" "${LIST[@]}" | fzf --prompt="🔊 Select Buffer Size (Quantum) > " --height=40% --layout=reverse)
+[[ -z "$CHOICE" ]] && echo "No selection made." && exit 0
+
+QUANTUM=$(echo "$CHOICE" | awk '{print $2}')
+
+# 5. Update default.clock.quantum in config file
+QUANTUM_LINE="    default.clock.quantum = $QUANTUM"
+
+# Check if the specific target line (default.clock.quantum, not limit/floor) exists
+if grep 'default.clock.quantum' "$CONFIG_FILE" | grep -qv 'quantum-'; then
+    # Target line exists: Use conditional sed to replace only the lines that do NOT contain 'quantum-'.
+    sed -i "/default\.clock\.quantum/ { /quantum\-/! s|.*|$QUANTUM_LINE| }" "$CONFIG_FILE"
+elif grep -q 'context.properties' "$CONFIG_FILE"; then
+    # context.properties exists: insert the new line after it
+    sed -i "/context.properties/ a\\$QUANTUM_LINE" "$CONFIG_FILE"
+else
+    # context.properties block does not exist: create it with the quantum
+    echo -e "context.properties = {\n$QUANTUM_LINE\n}" >> "$CONFIG_FILE"
+fi
+
+# 6. Restart pipewire to make changes
+systemctl --user stop pipewire pipewire-pulse
+systemctl --user start pipewire pipewire-pulse
+clear
+notify-send "✅ PipeWire buffer size (quantum) set to $QUANTUM samples."

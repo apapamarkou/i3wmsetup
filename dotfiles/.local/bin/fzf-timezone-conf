@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# FZF Timezone Configuration Menu for YOUNIX desktop environmen
+
 set_# Λίστα όλων των διαθέσιμων timezones
 zone=$(timedatectl list-timezones | fzf --prompt="🕒 Select Timezone > " --height=40% --layout=reverse)
 
-# Αν ο χρήστης πάτησε ESC ή δεν διάλεξε τίποτα
 [[ -z "$zone" ]] && echo "No timezone selected." && return 1
 
-# Εφαρμογή της νέας timezone
 if sudo timedatectl set-timezone "$zone"; then
 	notify-send "🕒 Timezone changed to $zone"
  	echo "✅ Timezone changed to $zone"

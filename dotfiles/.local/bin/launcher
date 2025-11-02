@@ -1,3 +1,16 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Rofi Application Launcher for YOUNIX desktop environment
+
 rofi -show drun -theme ~/.config/rofi/themes/materia-dark.rasi -cycle false -scroll-method 1 -show-icons

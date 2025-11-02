@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Fzf Wallpaper Picker Window
+# This script is used to pick a wallpaper from the wallpapers directory and set it as the desktop background.
+# It uses the fzf command-line tool to display a list of wallpapers and allows the user to select one.
+# The selected wallpaper is then set as the desktop background using the feh command-line tool.
+
+# Check if the fzf command-line tool is installed
+if ! command -v fzf &> /dev/null
+then
+    echo "fzf could not be found. \nrun: \nsudo pacman -S feh"
+    exit
+fi
+
+terminal --columns=80 --lines=20 --title="Wallpaper Picker" fzf-wallpaper-picker

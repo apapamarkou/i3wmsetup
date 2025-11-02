@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Screen Recording Script for YOUNIX desktop environment
+
 DIR="$HOME/Videos/ScreenRecords"
 mkdir -p "$DIR"
 FILE="$DIR/record_$(date +%Y-%m-%d_%H-%M-%S).mkv"

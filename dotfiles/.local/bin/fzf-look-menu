@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# FZF Look Menu for YOUNIX desktop environment
+
+while true; do
+    choice=$(echo -e "  Wallpaper\n  Theme\n󰛖  Font Size\n󰎟  Notifications\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=50% )
+    case $choice in
+        "  Wallpaper") fzf-wallpaper-picker-window ;;
+        "  Theme") fzf-theme-switch-menu ;;
+        "󰛖  Font Size") fzf-font-size ;;
+        "󰎟  Notifications") fzf-notifications-menu ;;
+        *) break ;;
+    esac
+done

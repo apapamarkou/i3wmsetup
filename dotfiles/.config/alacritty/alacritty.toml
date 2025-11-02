@@ -4,7 +4,7 @@ normal = { family = "JetBrainsMonoNL Nerd Font", style = "Regular" }
 bold = { family = "JetBrainsMonoNL Nerd Font", style = "Bold" }
 italic = { family = "JetBrainsMonoNL Nerd Font", style = "Italic" }
 bold_italic = { family = "JetBrainsMonoNL Nerd Font", style = "Bold Italic" }
-size = 11.0
+size = 10.0
 builtin_box_drawing = true
 
 [window]

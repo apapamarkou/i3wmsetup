@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Theme changer for YOUNIX desktop environment
+
+# Configuration files
+gtk_file="$HOME/.config/gtk-3.0/settings.ini"
+kbantum_file="$HOME/.config/Kvantum/kvantum.kvconfig"
+qt6conf_file="$HOME/.config/qt6ct/qt6ct.conf"
+dunst_file="$HOME/.config/dunst/dunstrc"
+keepassxc_file="$HOME/.config/keepassxc/keepassxc.ini"
+xsettingsd_file="$HOME/.config/xsettingsd/xsettingsd.conf"
+
+# Function to reset theme services
+reset_theme_services() {
+    pkill xsettingsd 2>/dev/null
+    pkill dunst 2>/dev/null
+    xsettingsd &
+    # Refresh Qt apps
+    # killall -SIGUSR1 qt6ct 2>/dev/null
+    pkill -HUP -f "qt" 2>/dev/null
+    dunst &
+    qdbus org.kde.KGlobalSettings /KGlobalSettings org.kde.KGlobalSettings.notifyChange 2 0
+    notify-send "Changes applied" "Gtk applications changes immediately.\nQT applications need to restart.\nYou may need to logout and login to apply changes to other type of applications."
+}
+
+# Function to set theme to dark
+set_dark() {
+    # property-change "gtk-theme-name" "$gtk_file" "Materia-dark"
+    gsettings set org.gnome.desktop.interface gtk-theme "Materia-dark"
+    # property-change "theme" "$kbantum_file" "MateriaDark"
+    kvantummanager --set MateriaDark
+    sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-dark"/' "$xsettingsd_file"
+    property-change "background" "$dunst_file" " \"#1E1E1E\""
+    property-change "foreground" "$dunst_file" " \"#F8F8F8\""
+    property-change "ApplicationTheme" "$keepassxc_file" "dark"
+    reset_theme_services
+}
+
+# Function to set theme to light
+set_light() {
+    #property-change "gtk-theme-name" "$gtk_file" "Materia-light"
+    gsettings set org.gnome.desktop.interface gtk-theme "Materia-light"
+    #property-change "theme" "$kbantum_file" "MateriaLight"
+    kvantummanager --set MateriaLight
+    sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-light"/' "$xsettingsd_file"
+    property-change "background" "$dunst_file" " \"#F8F8F8\""
+    property-change "foreground" "$dunst_file" " \"#1E1E1E\""
+    property-change "ApplicationTheme" "$keepassxc_file" "light"
+    reset_theme_services
+}
+
+# Function to set fonts
+set_fonts() {
+    local size=$1
+    case $size in
+        small) size=10 ;;
+        medium) size=12 ;;
+        large) size=14 ;;
+    esac
+    property-change "fixed" "$qt6conf_file" "\"JetBrainsMono Nerd Font,$size,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular\""
+    property-change "general" "$qt6conf_file" "\"Adwaita Sans,$size,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular\""
+    property-change "gtk-font-name" "$gtk_file" "\"Adwaita Sans $size\""
+    sed -i "s/Gtk\/FontName.*/Gtk\/FontName \"Adwaita Sans $size\"/" "$xsettingsd_file"
+    sed -i "s/Gtk\/MonospaceFontName.*/Gtk\/MonospaceFontName \"JetBrainsMono Nerd Font $size\"/" "$xsettingsd_file"
+    sed -i "s/font: \"Adwaita Sans [0-9]*\";/font: \"Adwaita Sans $size\";/" "$HOME/.config/rofi/themes/materia-dark.rasi"
+    sed -i "s/size = [0-9]\+\.[0-9]\+/size = $size.0/" "$HOME/.config/alacritty/alacritty.toml"
+    sed -i "s/XTerm\*faceName: JetBrainsMonoNL Nerd Font:size=[0-9]\+/XTerm*faceName: JetBrainsMonoNL Nerd Font:size=$size/" "$HOME/.Xresources"
+    sed -i "s/XTerm\*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=[0-9]\+/XTerm*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=$size/" "$HOME/.Xresources"
+    sed -i "s/XTerm\*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=[0-9]\+/XTerm*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=$size/" "$HOME/.Xresources"
+    sed -i "s/XTerm\*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=[0-9]\+/XTerm*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=$size/" "$HOME/.Xresources"
+    reset_theme_services
+}
+
+case $1 in
+    dark) set_dark ;;
+    light) set_light ;;
+    font) set_fonts $2 ;;
+    reset) reset_theme_services ;;
+esac

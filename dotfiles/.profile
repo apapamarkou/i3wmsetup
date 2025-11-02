@@ -1,15 +1,19 @@
 # default applications
-export EDITOR=/usr/bin/micro
+export EDITOR=editor
 export SHELL_GREETING=fetch
 export VISUAL=/usr/bin/micro
 export BROWSER=firefox
-export TERM=alacritty
+export TERMINAL=xterm
+export TERM=xterm
 export PAGER="bat"
-export SYSTEM_MONITOR="htop"
+export SYSTEM_MONITOR="top"
 export NETWORK_CONFIG=nmtui
 export SOUND_CONFIG=alsamixer
 export MUSIC_PLAYER=fzf-music-player
 export MUSIC_FOLDER=$HOME/Music
+export FILE_MANAGER=files
+export APPLICATION_LAUNCHER=launcher
+export CONTROL_PANEL=fzf-cc-window
 
 # nnn file manager setup
 export NNN_USE_EDITOR=1
@@ -25,6 +29,7 @@ export PATH=$HOME/bin:$PATH
 
 # theme related
 export QT_QPA_PLATFORMTHEME=qt6ct
+export QT_STYLE_OVERRIDE=kvantum
 
 export LC_PAPER="en_US.UTF-8"
 export LC_TIME="el_GR.UTF-8"

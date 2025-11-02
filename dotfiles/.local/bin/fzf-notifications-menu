@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+choice=$(echo -e " top-right\n top-left\n bottom-right\n bottom-left" | fzf --layout=reverse --prompt="  Select Position: ")
+
+case "$ACTION" in
+    *top-right*) change top-right ;;
+    *top-left*) change top-left ;;
+    *bottom-right*) change bottom-right ;;
+    *bottom-left*) change bottom-left ;;
+    *) return ;;  # Back ή κενή επιλογή
+esac
+
+change() {
+    if [ -n "$1" ]; then
+        property-change "origin" "$HOME/.config/dunst/dunstrc" "$1"
+        pkill dunst && dunst &
+    fi
+}

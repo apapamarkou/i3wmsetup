@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 
-# fzf-sound-menu.sh
-# A main menu to navigate between various audio configuration scripts (fzf, mixer, etc.)
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# FZF Sound Configuration Menu for YOUNIX desktop environment
 
 # Define the menu options and their associated commands
 MENU_OPTIONS=(

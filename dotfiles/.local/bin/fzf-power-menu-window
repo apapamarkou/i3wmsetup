@@ -1,3 +1,16 @@
 #!/bin/bash
 
-alacritty --title="Power Menu" -o window.dimensions.columns=30 -o window.dimensions.lines=8 -e fzf-power-menu
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Power menu window launcher for YOUNIX desktop environment
+
+terminal --columns=30 --lines=8 --title="Power Menu" fzf-power-menu

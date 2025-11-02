@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 
-# -------- CONFIG --------
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# FZF Configuration Center for YOUNIX desktop environment
+
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 MUSIC_DIR="$HOME/Music"
-# ------------------------
 
 change() {
     local monitor="$1"
@@ -26,9 +37,9 @@ system_monitor_menu() {
     ACTION=$(printf '󰍹 top\n󰷜 htop\n󰨇 btop\n Back' | fzf --layout=reverse --prompt='⚙️ > ' --height=40)
     
     case "$ACTION" in
-        '󰍹 top') change top ;;
-        '󰷜 htop') change htop ;;
-        '󰨇 btop') change btop ;;
+        *top*) change top ;;
+        *htop*) change htop ;;
+        *btop*) change btop ;;
         *) return ;;  # Back ή κενή επιλογή
     esac
 }
@@ -37,18 +48,17 @@ power_monitor_menu() {
 	local ACTION
 	ACTION=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt='⚙️ Power > ' --height=40%);
 	case "$ACTION" in
-		' Lock') i3lock ;;
-		'󰗽 Logout') i3-msg exit ;;
-		' Reboot') systemctl reboot ;;
-		'⏻ Poweroff') systemctl poweroff ;;
+		*Lock*) i3lock ;;
+		*Logout*) i3-msg exit ;;
+		*Reboot*) systemctl reboot ;;
+		*Poweroff*) systemctl poweroff ;;
 	esac
 }
 
 
-
 MENU_NAMES=(
 	"󰍹  Displays"
-    "󰸉  Wallpaper Picker"
+	"  Look & Theme"
     "  System Monitor"
     "󰀂  Network"
     "󰗅  Sound"
@@ -60,7 +70,7 @@ MENU_NAMES=(
 
 MENU_COMMANDS=(
 	arandr
-    wallpaper-picker-window
+	fzf-look-menu-window
     system_monitor_menu
 	netconf
 	fzf-sound
@@ -69,8 +79,6 @@ MENU_COMMANDS=(
     power_monitor_menu
     exit 0
 )
-
-
 
 while true; do
     choice=$(printf "%s\n" "${MENU_NAMES[@]}" | fzf --layout=reverse --prompt="  > " --height=50% --border --ansi)

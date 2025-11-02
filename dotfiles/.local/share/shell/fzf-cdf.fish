@@ -1,8 +1,8 @@
 function cdf
-    # Χρησιμοποιεί το πρώτο όρισμα ή $HOME αν δεν υπάρχει
-    set DIR (or $argv $HOME)
+    # Αν έχει δοθεί όρισμα, χρησιμοποίησέ το — αλλιώς το τρέχον directory
+    set DIR (or $argv (pwd))
 
-    # Βρες όλους τους φακέλους recursively
+    # Βρες όλους τους φακέλους recursively από εκεί και κάτω
     set DIRS (find $DIR -type d 2>/dev/null)
 
     if test (count $DIRS) -eq 0
@@ -12,7 +12,7 @@ function cdf
 
     # Επιλογή με fzf
     set choice (printf "%s\n" $DIRS | fzf \
-        --prompt "📂 cd > " \
+        --prompt "  cd > " \
         --height 80% \
         --layout reverse \
         --preview 'tree -L 1 {} | head -20' \

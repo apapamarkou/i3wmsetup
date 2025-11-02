@@ -1,3 +1,16 @@
 #!/bin/bash
 
-xfce4-terminal --title="Text Edit $1" -x micro "$1"
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Text Editor winddow launcher for YOUNIX desktop environment
+
+terminal --columns=140 --lines=40 --title="TTY" micro "$1"

@@ -11,7 +11,5 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# TUI File Manager window launcher for YOUNIX desktop environment
-
-# xfce4-terminal --title="Files" -x nnn "$1"
-terminal --title="Files" nnn "$1"
+choice=$(echo -e "light\ndark\n󰌍 Back" | fzf  --layout=reverse --prompt="  Theme: ")
+[ -n "$choice" ] && theme-config "$choice"

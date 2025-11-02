@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 # Fancy Nerd-Font system fetch with color and icons
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Greeting message for YOUNIX terminals
+
 # Colors
 CYAN="\033[0;36m"
 MAGENTA="\033[0;35m"

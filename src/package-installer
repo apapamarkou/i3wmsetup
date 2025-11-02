@@ -19,14 +19,12 @@ echo "Installing packages..."
 echo "---------------------"
 echo
 
-REPO_PACKAGES='autotiling polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils alacritty maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt6ct nnn feh mpv unzip man-db man-pages man-pages-el firefox qpwgraph keepassxc mame micro nvim fish zsh figlet bc cmatrix inetutils plocate '
+REPO_PACKAGES='autotiling alacritty polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship kvantum kvantum-theme-materia materia-gtk-theme lxappearance qt6ct nnn feh mpv unzip man-db man-pages man-pages-el firefox qpwgraph keepassxc mame micro nvim fish zsh figlet bc cmatrix inetutils plocate breze-icons xettingsd '
 
 # Confirm
-read -p "Do you need a GUI file manager? (Y/n) " confirm
+read -p "Do you need a GUI file manager (thunar)? (Y/n) " confirm
 if [[ $confirm =~ ^[Nn]$ ]]; then
     REPO_PACKAGES+='thunar thunar-archive-plugin thunar-media-tags-plugin thunar-vcs-plugin thunar-volman tumbler unzip xarchiver gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd '
-else
-    REPO_PACKAGES+='nnn '
 fi
 
 YAY_PACKAGES='aarchup pacseek '

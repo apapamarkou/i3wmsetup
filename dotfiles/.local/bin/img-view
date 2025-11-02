@@ -1,3 +1,18 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script is used to view images in a directory using the feh image viewer.
+# It takes a single argument, which is the starting index of the image to be displayed.
+# If no argument is provided, it defaults to 0 (the first image in the directory).
+
 feh --image-bg black --scale-down --geometry 1900x1000 --start-at $1

@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
 # Default system monitor is confirued in .profile
-#xfce4-terminal --hide-scrollbar --hide-menubar --geometry=80x24 --title="Network Configuration" -x $NETWORK_CONFIG
-alacritty --title="Network Configuration" -o window.dimensions.columns=80 -o window.dimensions.lines=24 -e $NETWORK_CONFIG
+terminal --columns=80 --lines=24 --title="Network Configuration" $NETWORK_CONFIG

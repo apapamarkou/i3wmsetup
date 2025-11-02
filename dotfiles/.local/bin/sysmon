@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# System Monitor Window for YOUNIX desktop environment
+
 # Default system monitor is confirued in .profile
-# xfce4-terminal --hide-scrollbar --hide-menubar --geometry=140x40 --title="System Monitor" -x $SYSTEM_MONITOR
-alacritty --title="System Monitor" -o window.dimensions.columns=140 -o window.dimensions.lines=40 -e $SYSTEM_MONITOR
+terminal --columns=140 --lines=40 --title="System Monitor" $SYSTEM_MONITOR

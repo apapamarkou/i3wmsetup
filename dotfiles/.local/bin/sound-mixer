@@ -1,3 +1,16 @@
 #!/bin/bash
 
-alacritty --title="Sound Control" -o window.dimensions.columns=80 -o window.dimensions.lines=24 -e $SOUND_CONFIG
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Sound Mixer Configuration Window for YOUNIX desktop environment
+
+terminal --columns=80 --lines=24 --title="Sound Control" $SOUND_CONFIG

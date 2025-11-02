@@ -11,7 +11,6 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# TUI File Manager window launcher for YOUNIX desktop environment
+# FZF Look and Feel Menu Window launcher for YOUNIX desktop environment
 
-# xfce4-terminal --title="Files" -x nnn "$1"
-terminal --title="Files" nnn "$1"
+terminal --columns=30 --lines=8 --title="Look and Feel settings" fzf-look-menu

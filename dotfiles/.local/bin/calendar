@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Calendar Window launcher for YOUNIX desktop environment
+
 # Default system monitor is confirued in .profile
 # xfce4-terminal --hide-scrollbar --hide-menubar --geometry=150x40 --title="Calendar" -x calcurse
-alacritty --title="System Calendar" -o window.dimensions.columns=150 -o window.dimensions.lines=40 -e calcurse
+terminal --columns=150 --lines=40 --title="System Calendar" calcurse

@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# FZF Notes Launcher for YOUNIX desktop environment
+
 mkdir -p $HOME/Documents/Notes
 cd "$HOME/Documents/Notes" || exit
 NOTE=$(fzf --preview 'bat --style=numbers --color=always {}' --height=80%)

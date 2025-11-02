@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
 # This script allows the user to easily change the default buffer size (quantum)
 # in PipeWire's configuration file ($HOME/.config/pipewire/pipewire.conf)
 # using fzf for interactive selection.

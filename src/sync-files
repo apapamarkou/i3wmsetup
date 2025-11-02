@@ -31,7 +31,7 @@ while IFS= read -r path || [ -n "$path" ]; do
 
     if [ -e "$SRC" ]; then
         echo "Syncing: $SRC -> $DEST"
-        rsync -a --delete --relative "$SRC" $ΗΟΜΕ "$DEST"
+        rsync -a --delete --relative "$HOME/./$path" "$DEST"
     else
         echo "⚠️ Missing: $SRC"
     fi

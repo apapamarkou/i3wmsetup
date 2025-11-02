@@ -30,7 +30,7 @@ fi
 YAY_PACKAGES='aarchup pacseek '
 
 # Confirm install java development
-read -p "Do you want to install Visual Studio Code? (Y/n) " confirm
+read -p "Are you a java developer? (Y/n) " confirm
 if [[ ! $confirm =~ ^[Nn]$ ]]; then
     YAY_PACKAGES+='visual-studio-code-bin '
     REPO_PACKAGES+='jdk21-openjdk openjdk21-doc openjdk21-src maven curl '
@@ -43,10 +43,10 @@ if [[ ! $confirm =~ ^[Nn]$ ]]; then
     YAY_PACKAGES+='muse-sound-manager-bin '
 fi
 
+# Install selected sets of packages
 sudo pacman -S --needed --noconfirm $REPO_PACKAGES
 yay -S --needed --noconfirm $YAY_PACKAGES
 
-# sudo pacman -R --noconfirm xterm
 
 
 

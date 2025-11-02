@@ -10,6 +10,8 @@
 
 .config/i3/
 
+.config/keepassxc
+
 .config/Kvantum/
 
 .config/nnn/
@@ -19,6 +21,8 @@
 .config/qt6ct/
 
 .config/rofi/
+
+.config/xsettingsd
 
 .config/mimeapps.list
 .config/starship.toml

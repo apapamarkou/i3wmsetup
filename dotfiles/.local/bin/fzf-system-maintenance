@@ -1,7 +1,7 @@
 #!/bin/bash
 
 while true; do
-    choice=$(echo -e "  Update System\n  Clean Unused Packages\n  Fix Keyring\n  Inspect & Free Space\n  System Malware Shield\n  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=50%)
+    choice=$(echo -e "󰚰  Update System\n󱣡  System Malware Shield\n󰿞  Clean Unused Packages\n  Inspect & Free Space\n󰁨  Fix Keyring\n󰌍  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=50%)
     
     case "$choice" in
         *Update*) 

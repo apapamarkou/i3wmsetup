@@ -1,32 +1,53 @@
-# YOUNIX Desktop Environment
+# 🧠 YOUNIX Desktop Environment
 
-My custom Arch Linux Post-Install scripts to setup a full ffeatured operating system for everyday users, developers, musicians, image/video editors or just old fashion UNIX fans.
+**YOUNIX** is my custom Arch Linux post-installation setup — a complete, minimal yet powerful desktop environment for **everyday users, developers, musicians, media creators**, and **classic UNIX enthusiasts**.
 
-This project is under heavy contruction. Please DO NOT USE until the first release!
+⚠️ **Under Heavy Development**
+This project is still in early construction. **Do not use it yet** until the first stable release is announced.
 
-## Features
+---
 
-- A keyboard/mouse driven environment based mostly on TUI apps.
-- Tilling window manager
-- Dark/Light theme
-- Dark terminal with autocompletion
-- TUI YOUNIX Configuration and mentainance Center
-- Inline Sreccnshots
-- Inline Screenrecording
-- nightlight
-- System and applications basic usage manuals.
-- Based on i3wm + polybar for easy customization
+## ✨ Features
 
-## Installation
+* **Keyboard- and mouse-driven workflow**, centered around lightweight TUI (Terminal User Interface) apps.
+* **Tiling window manager** (i3wm) with **polybar** for flexible and easy customization.
+* **Dark and Light themes** for both desktop and terminal.
+* **Enhanced terminal experience** — with intelligent autocompletion and consistent theming.
+* **YOUNIX Configuration & Maintenance Center** — a TUI control panel to manage and tweak your system easily.
+* **Inline screenshots** and **screen recording** tools built into the workflow.
+* **Nightlight mode** for comfortable nighttime use.
+* **System and app usage manuals** available directly from within the desktop environment.
 
-1. Read about how to install Arch the "YOUNIX" way.
+---
 
-2. Clone the repository:
+## 🧩 Installation
 
-```bash
-git clone https://github.com/apapamarkou/younix
-cd younix
-./install
-```
+1. **Prepare your Arch base system**
+   Install a minimal Arch Linux setup the “YOUNIX way” (details coming soon).
 
-3. Follow the instructions on the screen.
+2. **Clone this repository:**
+
+   ```bash
+   git clone https://github.com/apapamarkou/younix.git
+   cd younix
+   ```
+
+3. **Run the installer:**
+
+   ```bash
+   ./install
+   ```
+
+4. **Follow the on-screen instructions** and enjoy your new YOUNIX system.
+
+---
+
+## 🧱 Project Goals
+
+YOUNIX aims to bring together the **simplicity of UNIX philosophy**, the **power of modern Linux**, and a **streamlined desktop experience** designed for real daily use — whether you code, compose, edit, or just want to tinker.
+
+---
+
+## 📜 License
+
+GPL License © 2025 Apostolos Papamarkou

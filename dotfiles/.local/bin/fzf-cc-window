@@ -12,5 +12,4 @@
 # Email: papamarkoua@gmail.com
 
 # FZF Desktop Control Center Window launcher for YOUNIX desktop environment
-
 terminal --columns=50 --lines=15 --title="I3 Desktop Control Center" fzf-cc

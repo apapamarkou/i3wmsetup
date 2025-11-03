@@ -11,5 +11,12 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-choice=$(echo -e "light\ndark\n󰌍 Back" | fzf  --layout=reverse --prompt="  Theme: ")
-[ -n "$choice" ] && theme-config "$choice"
+# FZF Theme Switch Menu
+# A simple script to switch between themes in FZF
+
+choice=$(echo -e "󰯪  Light\n󱜞  Dark\n󰌍 Back" | fzf  --layout=reverse --prompt="  Theme: ")
+
+case "$choice" in
+        *Light*)   theme-config "light" >/dev/null 2>&1 & ;;
+         *Dark*)   theme-config "dark" >/dev/null 2>&1 & ;;
+esac

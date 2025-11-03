@@ -42,7 +42,7 @@ current_quantum=$(grep 'default.clock.quantum' "$CONFIG_FILE" | grep -v 'quantum
 LIST=()
 for quantum in "${QUANTUM_CHOICES[@]}"; do
     if [[ "$quantum" == "$current_quantum" ]]; then
-        LIST+=("✅  $quantum samples (Current)")
+        LIST+=("  $quantum samples (Current)")
     else
         # Using a dot for alignment to match the style of the rate selector script
         LIST+=(".   $quantum samples")

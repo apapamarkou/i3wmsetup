@@ -1,4 +1,3 @@
 #!/bin/bash
 
-# xfce4-terminal --hide-scrollbar --hide-menubar --geometry=120x24 --title="Blue Tooth Devices" -x bluetui
 terminal --columns=120 --lines=24 --title="Blue Tooth Devices" bluetui

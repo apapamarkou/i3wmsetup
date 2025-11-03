@@ -24,6 +24,7 @@ PROFILES=$(powerprofilesctl list | awk -F: '
 
 CURRENT_PROFILE=$(powerprofilesctl get)
 
+
 SELECTED_PROFILE=$(echo "$PROFILES" | \
   fzf --prompt="⚡ Select Power Profile: " \
       --header="Current: $CURRENT_PROFILE" \

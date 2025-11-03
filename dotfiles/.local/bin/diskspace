@@ -14,5 +14,4 @@
 # Disk Space Explorer window launcher for YOUNIX desktop environment
 
 # Default system monitor is confirued in .profile
-#xfce4-terminal --hide-scrollbar --hide-menubar --geometry=140x40 --title="Disk Space Explorer" -x dua i
 terminal --columns=140 --lines=40 --title="Disk Space Explorer" dua i

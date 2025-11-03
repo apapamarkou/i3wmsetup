@@ -1,7 +1,8 @@
 # YOUNIX Desktop Environment
 
 My custom Arch Linux Post-Install scripts to setup a full ffeatured operating system for everyday users, developers, musicians, image/video editors or just old fashion UNIX fans.
-This is under contruction. Please DO NOT USE until the first release!
+
+This project is under heavy contruction. Please DO NOT USE until the first release!
 
 ## Features
 

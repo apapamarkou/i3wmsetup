@@ -14,5 +14,4 @@
 # Calendar Window launcher for YOUNIX desktop environment
 
 # Default system monitor is confirued in .profile
-# xfce4-terminal --hide-scrollbar --hide-menubar --geometry=150x40 --title="Calendar" -x calcurse
 terminal --columns=150 --lines=40 --title="System Calendar" calcurse

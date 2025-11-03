@@ -1,0 +1,10 @@
+#!/bin/bash
+figlet "YOUNIX"
+
+echo -e "\e[33mUpdate Keyring\e[0m"
+echo
+
+sudo pacman -S archlinux-keyring; 
+sudo pacman-key --refresh-keys;
+
+read -p "Press Enter to continue..."

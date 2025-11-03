@@ -11,7 +11,7 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# --- Geolocation Script ---
+# --- Geolocation Redshift Start Script ---
 
 # 1. Fetch data
 GEODATA=$(curl -s http://ip-api.com/json/?fields=lat,lon)

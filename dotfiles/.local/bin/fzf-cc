@@ -34,7 +34,7 @@ change() {
 
 system_monitor_menu() {
     local ACTION
-    ACTION=$(printf '󰍹 top\n󰷜 htop\n󰨇 btop\n Back' | fzf --layout=reverse --prompt='⚙️ > ' --height=40)
+    ACTION=$(printf '󰍹  top\n󰷜  htop\n󰨇  btop\n  Back' | fzf --layout=reverse --prompt='   Select > ' --height=40)
     
     case "$ACTION" in
         *top*) change top ;;
@@ -44,9 +44,9 @@ system_monitor_menu() {
     esac
 }
 
-power_monitor_menu() {
+power_menu() {
 	local ACTION
-	ACTION=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt='⚙️ Power > ' --height=40%);
+	ACTION=$(printf '  Lock\n󰗽  Logout\n  Reboot\n⏻  Poweroff\n  Back' | fzf --layout=reverse --prompt='  Action > ' --height=40%);
 	case "$ACTION" in
 		*Lock*) i3lock ;;
 		*Logout*) i3-msg exit ;;
@@ -55,32 +55,65 @@ power_monitor_menu() {
 	esac
 }
 
+terminal_menu() {
+	local ACTION
+    while true; do
+        clear
+        ACTION=$(printf '  Default Terminal\n󰗽  Default Shell\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
+        case "$ACTION" in
+            *Terminal*) fzf-terminal-select ;;
+            *Shell*) fzf-select-shell ;;
+            *) return ;;  # Back ή κενή επιλογή
+        esac
+    done
+}
+
+display_menu() {
+	local ACTION
+    while true; do
+        clear
+        ACTION=$(printf '󰍹  Monitor Configuration\n  Night Light\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
+        case "$ACTION" in
+            *Configuration*) arandr >/dev/null 2>&1 & ;;
+            *Night*) fzf-redshift-menu ;;
+            *) return ;;  # Back ή κενή επιλογή
+        esac
+    done
+}
+
 
 MENU_NAMES=(
-	"󰍹  Displays"
+	"󰍹  Display"
 	"  Look & Theme"
     "  System Monitor"
     "󰀂  Network"
+    "  Terminal Preferences"
     "󰗅  Sound"
     "  Language"
+    "  System Maintenance"
     "󰤄  Power Profiles"
     "󰐥  Power Menu"
     "❌ Exit"
 )
 
 MENU_COMMANDS=(
-	arandr
-	fzf-look-menu-window
+	display_menu
+	fzf-look-menu
     system_monitor_menu
 	netconf
+    terminal_menu
 	fzf-sound
 	fzf-language-prefs
+    fzf-system-maintenance
 	powerprofileswindow
-    power_monitor_menu
+    power_menu
     exit 0
 )
 
 while true; do
+
+	
+	
     choice=$(printf "%s\n" "${MENU_NAMES[@]}" | fzf --layout=reverse --prompt="  > " --height=50% --border --ansi)
 
     # Exit if Esc or no selection

@@ -29,7 +29,7 @@ reset_theme_services() {
     # Refresh Qt apps
     # killall -SIGUSR1 qt6ct 2>/dev/null
     pkill -HUP -f "qt" 2>/dev/null
-    dunst &
+    nohup dunst > /dev/null 2>&1 &
     qdbus org.kde.KGlobalSettings /KGlobalSettings org.kde.KGlobalSettings.notifyChange 2 0
     notify-send "Changes applied" "Gtk applications changes immediately.\nQT applications need to restart.\nYou may need to logout and login to apply changes to other type of applications."
 }
@@ -64,21 +64,35 @@ set_light() {
 set_fonts() {
     local size=$1
     case $size in
-        small) size=10 ;;
-        medium) size=12 ;;
-        large) size=14 ;;
+        small) size=9 ;;
+        medium) size=11 ;;
+        large) size=13 ;;
     esac
+    # QT6CT
     property-change "fixed" "$qt6conf_file" "\"JetBrainsMono Nerd Font,$size,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular\""
     property-change "general" "$qt6conf_file" "\"Adwaita Sans,$size,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular\""
+    # Legacy GTK
     property-change "gtk-font-name" "$gtk_file" "\"Adwaita Sans $size\""
+    # Xsetings (GTK)
     sed -i "s/Gtk\/FontName.*/Gtk\/FontName \"Adwaita Sans $size\"/" "$xsettingsd_file"
     sed -i "s/Gtk\/MonospaceFontName.*/Gtk\/MonospaceFontName \"JetBrainsMono Nerd Font $size\"/" "$xsettingsd_file"
+    # Rofi
     sed -i "s/font: \"Adwaita Sans [0-9]*\";/font: \"Adwaita Sans $size\";/" "$HOME/.config/rofi/themes/materia-dark.rasi"
+    # Alacritty
     sed -i "s/size = [0-9]\+\.[0-9]\+/size = $size.0/" "$HOME/.config/alacritty/alacritty.toml"
+    # xterm
     sed -i "s/XTerm\*faceName: JetBrainsMonoNL Nerd Font:size=[0-9]\+/XTerm*faceName: JetBrainsMonoNL Nerd Font:size=$size/" "$HOME/.Xresources"
     sed -i "s/XTerm\*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=[0-9]\+/XTerm*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=$size/" "$HOME/.Xresources"
     sed -i "s/XTerm\*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=[0-9]\+/XTerm*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=$size/" "$HOME/.Xresources"
     sed -i "s/XTerm\*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=[0-9]\+/XTerm*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=$size/" "$HOME/.Xresources"
+    # I3 wm
+    sed -i "s/font pango:JetBrainsMono Nerd Font [0-9]\+/font pango:JetBrainsMono Nerd Font $size/" "$HOME/.config/i3/config"
+    i3-msg reload
+    # Polybar
+    sed -i "s/font-0 = \"JetBrainsMonoNL NFM:size=[0-9]\+/font-0 = \"JetBrainsMonoNL NFM:size=$size/" "$HOME/.config/polybar/config.ini"
+    sed -i "s/font-1 = \"JetBrainsMonoNL Nerd Font Mono:size=[0-9]\+/font-1 = \"JetBrainsMonoNL Nerd Font Mono:size=$size/" "$HOME/.config/polybar/config.ini"
+    pkill polybar
+    nohup polybar > /dev/null 2>&1 &
     reset_theme_services
 }
 

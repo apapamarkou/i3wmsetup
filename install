@@ -61,3 +61,6 @@ sudo systemctl start power-profiles-daemon
 
 # Update the locate database
 sudo updatedb
+
+# Select fish shell
+chsh -s chsh -s /usr/bin/fish

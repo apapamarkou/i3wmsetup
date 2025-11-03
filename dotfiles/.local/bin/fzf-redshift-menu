@@ -1,0 +1,27 @@
+#!/bin/bash
+
+choice=$(echo -e "  Enable\n  Disable\n󰌍 Back" | fzf --layout=reverse --height=40 --prompt="  Redshift: ")
+
+redshift_change() {
+    case $1 in
+        on)
+            nohup start-geolocated-redshift > /dev/null 2>&1 &
+            # uncommend out the line "#exec --no-startup-id start-geolocated-redshift" from .config/i3/conf.d/startup.conf
+            sed -i '/#exec --no-startup-id start-geolocated-redshift/s/^#//' ~/.config/i3/conf.d/startup.conf
+            notify-send "Redshift Enabled" "See the system tray.\nMay take a few seconds..."
+            ;;
+        off)
+            pkill redshift
+            # commend out the line "exec --no-startup-id start-geolocated-redshift" from .config/i3/conf.d/startup.conf
+            sed -i '/exec --no-startup-id start-geolocated-redshift/s/^/#/' ~/.config/i3/conf.d/startup.conf
+            notify-send "Redshift Disabled" "Screen color temperature reset to default."
+            ;;
+    esac
+}
+
+case $choice in
+    *Enable*) redshift_change on ;;
+    *Disable*) redshift_change off ;;
+esac
+
+

@@ -43,7 +43,7 @@ while IFS= read -r rawline; do
     printf "%s | %s | %s\n" "$status" "$display_name" "$code" >> "$tmpfile"
 done < <(tail -n +18 /etc/locale.gen)
 
-choice=$(sort "$tmpfile" | fzf --prompt=" Select Language > " --height=100% --layout=reverse --with-nth=1,2,3)
+choice=$(sort "$tmpfile" | fzf --prompt="  Select Language > " --height=100% --layout=reverse --with-nth=1,2,3)
 rm -f "$tmpfile"
 
 [[ -z "$choice" ]] && exit 0

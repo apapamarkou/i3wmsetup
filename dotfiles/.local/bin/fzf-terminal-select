@@ -1,0 +1,21 @@
+#!/bin/bash
+
+clear
+
+# print "The current is $TERMINAL" in color yellow
+echo -e "\033[33mThe current terminal is $TERMINAL\033[0m"
+
+choice=$(echo -e "  alacritty\n  xterm\n󰌍  Back" | fzf --layout=reverse --height=50% --prompt="  Terminal: ")
+
+case $choice in
+    "  alacritty") alacritty & ;;
+    "  xterm") xterm & ;;
+esac
+
+#change function to change "export TERMINAL=xterm" and "export TERM=xterm" in ~/.profile
+change_terminal() {
+    local terminal="$1"
+    sed -i "s|^export TERMINAL=.*|export TERMINAL=$terminal|" ~/.profile
+    sed -i "s|^export TERM=.*|export TERM=$terminal|" ~/.profile
+    notify-send "Terminal changed to $terminal" "This setting will be available at the next login."
+}

@@ -31,5 +31,3 @@ export PATH=$HOME/bin:$PATH
 export QT_QPA_PLATFORMTHEME=qt6ct
 export QT_STYLE_OVERRIDE=kvantum
 
-export LC_PAPER="en_US.UTF-8"
-export LC_TIME="el_GR.UTF-8"

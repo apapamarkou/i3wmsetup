@@ -1,0 +1,20 @@
+#!/bin/bash
+
+while true; do
+    choice=$(echo -e "  Update System\n  Clean Unused Packages\n  Fix Keyring\n  Inspect & Free Space\n  System Malware Shield\n  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=50%)
+    
+    case "$choice" in
+        *Update*) 
+            terminal --columns=120 --lines=30 --title="Mainenance: System Update" update ;;
+        *Clean*)
+            terminal --columns=120 --lines=30 --title="Mainenance: Clean orphaned packages" clean-orphaned ;;
+        *Keyring*)
+            terminal --columns=120 --lines=30 --title="Mainenance: Fix Keyring" fix-keyring ;;
+        *Space*)
+            terminal --columns=120 --lines=30 --title="Mainenance: Inspect and Free Space" "dua i $HOME" ;;
+        *Malware*)
+            terminal --columns=120 --lines=30 --title="Mainenance: System Malware Shield" update-shield;;
+        *) break ;;
+    esac
+done
+

@@ -14,7 +14,7 @@
 # This script is a part of the Younix project.
 # It provides a power menu for the i3 window manager.
 
-ACTION=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt='⚙️ System > ' --height=40%);
+ACTION=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt=' System > ' --height=40%);
 	case "$ACTION" in
 		' Lock') i3lock ;;
 		'󰗽 Logout') i3-msg exit ;;

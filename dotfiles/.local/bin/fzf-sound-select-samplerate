@@ -59,7 +59,7 @@ fi
 LIST=()
 for rate in "${SAMPLE_RATES[@]}"; do
     if [[ "$rate" == "$current_rate" ]]; then
-        LIST+=("✅  $rate Hz (Current)")
+        LIST+=("  $rate Hz (Current)")
     else
         LIST+=(".   $rate Hz")
     fi

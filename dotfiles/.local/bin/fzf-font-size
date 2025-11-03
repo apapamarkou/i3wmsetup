@@ -13,7 +13,7 @@
 
 # FZF Font Size Selector for YOUNIX desktop environment
 
-choice=$(echo -e "  Small Font\n  Medium Font\n  Large Font" | fzf --layout=reverse --prompt="  Select Size: ")
+choice=$(echo -e "󰧳  Small Font\n󰧳  Normal Font\n󰧴  Large Font" | fzf --layout=reverse --prompt="  Select Size: ")
 if [ -n "$choice" ]; then
     case "$choice" in
         *Small*) theme-config font small ;;

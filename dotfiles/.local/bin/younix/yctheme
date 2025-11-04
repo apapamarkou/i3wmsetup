@@ -1,0 +1,133 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Configure Theme
+#
+
+MUTE_NOTIFY=false
+MUTE_ECHO=false
+
+showHelp() {
+    echo "YoUNiX Configure Theme"
+    echo "Usage: ycnightlight [OPTIONS]"
+    echo "Options:"
+    echo "  -t           Open in terminal"
+    echo "  --set=STATE  Set theme (dark/light)"
+    echo "  -h           Show this help"
+    echo "  -n           Show notification"
+    echo "  -v           Show console message"
+    echo "Arguments can be combined: -vn, -nv, etc."
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" yctheme $args > /dev/null 2>&1 &
+}
+
+set() {
+    changeGtkTheme "$1"
+    changeKvantumTheme "$1"
+    changeXsettingsdTheme "$1"
+    changeDunstTheme "$1"
+    changeKeepassxcTheme "$1"
+}
+
+propertyChange() {
+    PROPERTY="$1"
+    FILE="$2"
+    VALUE="$3"
+    sed -i "s/^\([[:space:]]*${PROPERTY}[[:space:]]*=\).*/\1${SPACE}${VALUE}/g" "$FILE"
+}
+
+changeGtkTheme() {
+    case $1 in
+        dark) gsettings set org.gnome.desktop.interface gtk-theme "Materia-dark" ;;
+        light) gsettings set org.gnome.desktop.interface gtk-theme "Materia-light" ;;
+    esac
+}
+
+changeXsettingsdTheme(){
+    xsettingsd_file="$HOME/.config/xsettingsd/xsettingsd.conf"
+    case $1 in
+        dark) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-dark"/' "$xsettingsd_file" ;;
+        light) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-light"/' "$xsettingsd_file" ;;
+    esac
+    pkill xsettingsd 2>/dev/null
+    sleep 2
+    xsettingsd &
+}
+
+changeKvantumTheme() {
+    case $1 in
+        dark) kvantummanager --set MateriaDark ;;
+        light) kvantummanager --set MateriaLight ;;
+    esac
+}
+
+changeDunstTheme() {
+    local dunst_file="$HOME/.config/dunst/dunstrc"
+    case $1 in
+        dark) propertyChange "background" "$dunst_file" " \"#1E1E1E\""
+              propertyChange "foreground" "$dunst_file" " \"#F8F8F8\""
+            ;;
+        light) property-change "background" "$dunst_file" " \"#F8F8F8\""
+               property-change "foreground" "$dunst_file" " \"#1E1E1E\""
+            ;;
+    esac
+    pkill dunst 2>/dev/null
+    sleep 1
+    nohup dunst > /dev/null 2>&1 &
+}
+
+changeKeepassxcTheme() {
+    local keepassxc_file="$HOME/.config/keepassxc/keepassxc.ini"
+    case $1 in
+        dark)   property-change "ApplicationTheme" "$keepassxc_file" "dark" ;;
+        light)  property-change "ApplicationTheme" "$keepassxc_file" "light";;
+    esac
+}
+
+displayMenu() {
+    while true; do
+        # clear
+        yprint -c --color=yellow "YoUNiX Configure Theme"
+        choice=$(echo -e "󰯪  Light\n󱜞  Dark\n󰌍  Back" | fzf  --layout=reverse --prompt="  > " --height=50%)
+        case "$choice" in
+            *Light*) set "light" ;;
+            *Dark*)  set "dark"  ;;
+            *) break ;;
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+
+while getopts "thnv" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        n) MUTE_NOTIFY=true ;;
+        v) MUTE_ECHO=true ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

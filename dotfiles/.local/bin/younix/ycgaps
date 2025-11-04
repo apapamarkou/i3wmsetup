@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Configure I3 window gaps
+#
+
+MUTE_NOTIFY=false
+MUTE_ECHO=false
+
+showHelp() {
+    echo "YoUNiX Configure I3 window gaps"
+    echo "Usage: ycgaps [OPTIONS]"
+    echo "Options:"
+    echo "  -t           Open in terminal"
+    echo "  -s           Set theme (tight/separated/loose)"
+    echo "  -h           Show this help"
+    echo "  -n           Show notification"
+    echo "  -v           Show console message"
+    echo "Arguments can be combined: -vn, -nv, etc."
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycgaps $args > /dev/null 2>&1 &
+}
+
+printMessage() {
+    if [ "$MUTE_NOTIFY" = false ]; then
+        notify-send "Window gaps changed to $1" "Some changees will be available at the next login."
+    fi
+    if [ "$MUTE_ECHO" = false ]; then
+        echo -e "Window gaps changed to $1.\nSome changes will be available at the next login."
+    fi
+}
+
+change() {
+    
+    case $1 in
+        tight)
+            gapSize=0 ;;
+        separated)
+            gapSize=5 ;;
+        loose)
+            gapSize=15 ;;
+    esac
+    i3-msg "gaps inner all set 0; gaps outer all set $gapSize"  >/dev/null 2>&1 &
+    sed -i "s/gaps inner [0-9]*px/gaps inner 0px/" "$HOME/.config/i3/config" 
+}
+
+displayMenu() {
+    while true; do
+        # clear
+        yprint -c --color=yellow "YoUNiX Configure I3 Window Gaps"
+        choice=$(echo -e "󰎦  Tight (no gaps)\n󰎩  Separated (small gaps)\n󰎬  Loose (large gaps)\n󰌍  Back" | fzf --layout=reverse --prompt="  Gaps > " --height=40%)
+        case "$choice" in
+            *Tight*) change tight ;;
+            *Separated*) change separated ;;
+            *Loose*) change loose ;;
+            *) break ;;
+
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+SET_MONITOR=""
+
+while getopts "thnvs:" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        n) MUTE_NOTIFY=true ;;
+        v) MUTE_ECHO=true ;;
+        s) SET="$OPTARG" ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ -n "$SET" ]; then
+    case "$SET" in
+        tight|separated|loose) change "$SET" ;;
+        *) echo "Invalid gap size. Use 'tight', 'separated', or 'loose'."; exit 1 ;;
+    esac
+    exit 0
+fi
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Select Default Terminal
+#
+
+MUTE_NOTIFY=false
+MUTE_ECHO=false
+
+showHelp() {
+    echo "YoUNiX Select Default Terminal"
+    echo "Usage: ycdefaultterminal [OPTIONS]"
+    echo "Options:"
+    echo "  -t              Open in terminal"
+    echo "  -s TERMINAL     Set default terminal"
+    echo "  -h              Show this help"
+    echo "  -n              Show notification"
+    echo "  -v              Show console message"
+    exit 0
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycdefaultterminal $args > /dev/null 2>&1 &
+}
+
+changeTerminal() {
+    local terminal="$1"
+    sed -i "s|^export TERMINAL=.*|export TERMINAL=$terminal|" ~/.profile
+    sed -i "s|^export TERM=.*|export TERM=$terminal|" ~/.profile
+    notify-send "Terminal changed to $terminal" "This setting will be available at the next login."
+}
+
+printMessage() {
+    if [ "$MUTE_NOTIFY" = false ]; then
+        notify-send "Terminal changed to $1" "This setting will be available at the next login."
+    fi
+    if [ "$MUTE_ECHO" = false ]; then
+        echo -e "Terminal changed to $1.\nThis setting will be available at the next login."
+    fi
+}
+
+displayMenu() {
+    while true; do
+        clear
+        yprint -c --color=yellow "YoUNiX Select Default Terminal"
+        choice=$(echo -e "  alacritty\n  xterm\n󰌍  Back" | fzf --layout=reverse --height=50% --prompt="  Terminal: ")
+
+        case $choice in
+            *alacritty*) changeTerminal alacritty && printMessage alacritty ;;
+            *xterm*) changeTerminal xterm && printMessage xterm ;; 
+            *) exit 0 ;;
+
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+SET_TERMINAL=""
+
+while getopts "thnvs:" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp ;;
+        n) MUTE_NOTIFY=true ;;
+        v) MUTE_ECHO=true ;;
+        s) SET_TERMINAL="$OPTARG" ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ -n "$SET_TERMINAL" ]; then
+    changeTerminal "$SET_TERMINAL" && printMessage "$SET_TERMINAL"
+    exit 0
+fi
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

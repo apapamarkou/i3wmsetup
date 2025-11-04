@@ -3,12 +3,12 @@ set $mod Mod4
 floating_modifier $mod
 tiling_drag modifier titlebar
 
-font pango:JetBrainsMono Nerd Font 10
+font pango:JetBrainsMono Nerd Font normal
 
-gaps inner 15px
+gaps inner 0px
 smart_gaps inverse_outer
 
-default_border pixel 2
+default_border pixel 2normalpx
 
 # include all sub-configs
 include conf.d/startup.conf

@@ -63,4 +63,4 @@ sudo systemctl start power-profiles-daemon
 sudo updatedb
 
 # Select fish shell
-chsh -s chsh -s /usr/bin/fish
+chsh -s /usr/bin/fish

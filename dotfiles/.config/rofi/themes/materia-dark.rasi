@@ -1,5 +1,5 @@
 * {
-  font: "Adwaita Sans 10";
+  font: "Adwaita Sans normal";
 
   bg0    : #1f1f1f80;
   bg1    : #202020bf;

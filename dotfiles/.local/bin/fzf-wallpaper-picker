@@ -13,8 +13,6 @@
 
 # FZF Wallpaper Picker for YOUNIX desktop environment
 
-WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-
 [ ! -d "$WALLPAPER_DIR" ] && {
     echo "❌ $WALLPAPER_DIR folder does not exist."
     exit 1

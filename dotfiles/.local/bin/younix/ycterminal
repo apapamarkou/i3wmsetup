@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Configure Terminal
+#
+
+showHelp() {
+    echo "YoUNiX Configure Terminal"
+    echo "Usage: ycterminal [OPTIONS]"
+    echo "Options:"
+    echo "  -t    Open in terminal"
+    echo "  -h    Show this help"
+    echo "Arguments can be combined: -vh, etc."
+}
+
+openTerminal() {
+    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycterminal
+}
+
+displayMenu() {
+    while true; do
+        clear
+        yprint -c --color=yellow "YoUNiX Configure Terminal"
+        choice=$(printf '  Default Terminal\n󰗽  Default Shell\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
+        [ -z "$choice" ] && exit 0
+        
+        case "$choice" in
+            *Terminal*) ycdefaultterminal;;
+            *Shell*) ycdefaultshell ;;
+            *) return ;;  # Back ή κενή επιλογή
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+
+while getopts "th" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

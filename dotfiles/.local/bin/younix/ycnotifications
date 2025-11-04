@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Configure Notifications
+#
+
+MUTE_NOTIFY=false
+MUTE_ECHO=false
+
+showHelp() {
+    echo "YoUNiX Configure Notifications"
+    echo "Usage: ycnightlight [OPTIONS]"
+    echo "Options:"
+    echo "  -t           Open in terminal"
+    echo "  -s POSITION  Set position (top-left/top-right/bottom-left/bottom-right)"
+    echo "  -h           Show this help"
+    echo "  -n           Show notification"
+    echo "  -v           Show console message"
+    echo "Arguments can be combined: -vn, -nv, etc."
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycnotifications $args > /dev/null 2>&1 &
+}
+
+printMessage() {
+    if [ "$MUTE_NOTIFY" = false ]; then
+        notify-send "Position changed to $1" "Position changed to $1"
+    fi
+    if [ "$MUTE_ECHO" = false ]; then
+        echo -e "Position changed to $1."
+    fi
+}
+
+propertyChange() {
+    PROPERTY="$1"
+    FILE="$2"
+    VALUE="$3"
+    sed -i "s/^\([[:space:]]*${PROPERTY}[[:space:]]*=\).*/\1${SPACE}${VALUE}/g" "$FILE"
+}
+
+change() {
+    local dunst_file="$HOME/.config/dunst/dunstrc"
+    # call propety-change to change origin = top-left
+    property-change "origin" "$dunst_file" " $1"
+    # restart dunst to apply changes
+    pkill dunst
+    nohup dunst > /dev/null 2>&1 &
+    printMessage "$1"
+}
+
+displayMenu() {
+    while true; do
+        # clear
+        yprint -c --color=yellow "YoUNiX Configure Notifications"
+        choice=$(echo -e "󰁜  top-right\n󰁛  top-left\n󰁃  bottom-right\n󰁂  bottom-left\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=50%)
+        case "$choice" in
+            *top-right*) change top-right ;;
+            *top-left*) change top-left ;;
+            *bottom-right*) change bottom-right ;;
+            *bottom-left*) change bottom-left ;;
+            *) break ;;
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+SET_POSITION=""
+
+while getopts "thnvs:" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        n) MUTE_NOTIFY=true ;;
+        v) MUTE_ECHO=true ;;
+        s) SET_POSITION="$OPTARG" ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ -n "$SET_POSITION" ]; then
+    case "$SET_POSITION" in
+        top-left|top-right|bottom-left|bottom-right) change "$SET_POSITION" ;;
+        *) echo "Invalid position. Use 'top-left', 'top-right', 'bottom-left', or 'bottom-right'."; exit 1 ;;
+    esac
+    exit 0
+fi
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

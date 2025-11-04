@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Control Center main menu
+#
+
+show_help() {
+    echo "YoUNiX Control Center"
+    echo "Usage: ycc [OPTIONS]"
+    echo "Options:"
+    echo "  -t    Open in terminal"
+    echo "  -h    Show this help"
+}
+
+open_terminal() {
+    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycc
+}
+
+display_menu() {
+    while true; do
+        clear
+        yprint -c --color=yellow "YoUNiX Control Center"
+        choice=$(echo -e "󰍹  Display\n  Look & Theme\n  System Monitor\n󰀂  Network\n  Terminal Preferences\n󰗅  Sound\n  Language\n  System Maintenance\n󰔄󰤄  Power Profiles\n󰐥  Power Menu\n  Exit" | fzf --layout=reverse --prompt="  > " --height=90%)
+        [ -z "$choice" ] && exit 0
+        
+        case "$choice" in
+            *Display*) ycdisplay ;;
+            *Look*) fzf-look-menu ;;
+            *Monitor*) ycsystemmonitor ;;
+            *Network*) netconf ;;
+            *Terminal*) ycterminal ;;
+            *Sound*) fzf-sound ;;
+            *Language*) fzf-language-prefs ;;
+            *Maintenance*) fzf-system-maintenance ;;
+            *Profiles*) powerprofileswindow ;;
+            *Power*) power_menu ;;
+            *) exit 0 ;;
+        esac
+    done
+}
+
+OPEN_TERMINAL=false
+
+while getopts "th" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) show_help; exit 0 ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    open_terminal
+    exit 0
+fi
+
+display_menu

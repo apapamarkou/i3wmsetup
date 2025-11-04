@@ -6,7 +6,7 @@ export BROWSER=firefox
 export TERMINAL=xterm
 export TERM=xterm
 export PAGER="bat"
-export SYSTEM_MONITOR="top"
+export SYSTEM_MONITOR="htop"
 export NETWORK_CONFIG=nmtui
 export SOUND_CONFIG=alsamixer
 export MUSIC_PLAYER=fzf-music-player
@@ -14,6 +14,9 @@ export MUSIC_FOLDER=$HOME/Music
 export FILE_MANAGER=files
 export APPLICATION_LAUNCHER=launcher
 export CONTROL_PANEL=fzf-cc-window
+
+export WALLPAPER_DIR=$HOME/Pictures/Wallpapers
+
 
 # nnn file manager setup
 export NNN_USE_EDITOR=1
@@ -25,6 +28,7 @@ export NNN_OPENER="xdg-open"
 
 # Paths to local binaries
 export PATH=$HOME/.local/bin:$PATH
+export PATH=$HOME/.local/bin/younix:$PATH
 export PATH=$HOME/bin:$PATH
 
 # theme related

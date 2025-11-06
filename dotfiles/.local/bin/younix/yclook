@@ -35,7 +35,9 @@ displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "YoUNiX Config Look"
-        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰛖  Font Size\n󰎟  Notifications\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=50% )
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 1))
+        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰛖  Font Size\n󰎟  Notifications\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height )
         case $choice in
             *Wallpaper*) ycwallpaper ;;
             *Theme*) yctheme ;;

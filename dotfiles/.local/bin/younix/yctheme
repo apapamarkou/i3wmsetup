@@ -39,7 +39,6 @@ openTerminal() {
 
 set() {
     changeGtkTheme "$1"
-    changeKvantumTheme "$1"
     changeXsettingsdTheme "$1"
     changeDunstTheme "$1"
     changeKeepassxcTheme "$1"
@@ -54,27 +53,31 @@ propertyChange() {
 
 changeGtkTheme() {
     case $1 in
-        dark) gsettings set org.gnome.desktop.interface gtk-theme "Materia-dark" ;;
-        light) gsettings set org.gnome.desktop.interface gtk-theme "Materia-light" ;;
+        dark) 
+            gsettings set org.gnome.desktop.interface gtk-theme "Materia-dark" 
+            propertyChange "gtk-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "Materia-dark"
+            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-4.0/settings.ini" "breeze-dark"
+            ;;
+        light) gsettings set org.gnome.desktop.interface gtk-theme "Materia-light" 
+            propertyChange "gtk-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "Materia-light"
+            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-4.0/settings.ini" "breeze"
+            ;;
     esac
 }
 
 changeXsettingsdTheme(){
     xsettingsd_file="$HOME/.config/xsettingsd/xsettingsd.conf"
     case $1 in
-        dark) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-dark"/' "$xsettingsd_file" ;;
-        light) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-light"/' "$xsettingsd_file" ;;
+        dark) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-dark"/' "$xsettingsd_file" 
+            sed -i 's/Net\/IconThemeName.*/Net\/IconThemeName "breeze-dark"/' "$xsettingsd_file" 
+            ;;
+        light) sed -i 's/Net\/ThemeName.*/Net\/ThemeName "Materia-light"/' "$xsettingsd_file"
+            sed -i 's/Net\/IconThemeName.*/Net\/IconThemeName "breeze"/' "$xsettingsd_file" 
+        ;;
     esac
     pkill xsettingsd 2>/dev/null
     sleep 2
     xsettingsd &
-}
-
-changeKvantumTheme() {
-    case $1 in
-        dark) kvantummanager --set MateriaDark ;;
-        light) kvantummanager --set MateriaLight ;;
-    esac
 }
 
 changeDunstTheme() {
@@ -104,7 +107,10 @@ displayMenu() {
     while true; do
         # clear
         yprint -c --color=yellow "YoUNiX Configure Theme"
-        choice=$(echo -e "󰯪  Light\n󱜞  Dark\n󰌍  Back" | fzf  --layout=reverse --prompt="  > " --height=50%)
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 1))
+        
+        choice=$(echo -e "󰯪  Light\n󱜞  Dark\n󰌍  Back" | fzf  --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *Light*) set "light" ;;
             *Dark*)  set "dark"  ;;

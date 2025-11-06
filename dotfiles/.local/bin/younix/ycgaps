@@ -56,15 +56,30 @@ change() {
         loose)
             gapSize=15 ;;
     esac
+    # apply setting immediately
     i3-msg "gaps inner all set 0; gaps outer all set $gapSize"  >/dev/null 2>&1 &
-    sed -i "s/gaps inner [0-9]*px/gaps inner 0px/" "$HOME/.config/i3/config" 
+    #replace $HOME/.config/i3/config gaps inner value with gapSize
+    sed -i "s/gaps inner [0-9]*px/gaps inner ${gapSize}px/" "$HOME/.config/i3/config"
 }
 
 displayMenu() {
     while true; do
         # clear
         yprint -c --color=yellow "YoUNiX Configure I3 Window Gaps"
-        choice=$(echo -e "󰎦  Tight (no gaps)\n󰎩  Separated (small gaps)\n󰎬  Loose (large gaps)\n󰌍  Back" | fzf --layout=reverse --prompt="  Gaps > " --height=40%)
+        # get current gaps from conf and convert to word
+        current_px=$(grep 'gaps inner' "$HOME/.config/i3/config" | awk '{print $3}')
+        case "$current_px" in
+            0px) current_word="Tight (no gaps)" ;;
+            5px) current_word="Separated (small gaps)" ;;
+            15px) current_word="Loose (large gaps)" ;;
+            *) current_word="Custom ($current_px)" ;;
+        esac
+        
+        yprint -c "Current gaps: $current_word"
+        
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+        choice=$(echo -e "󰎦  Tight (no gaps)\n󰎩  Separated (small gaps)\n󰎬  Loose (large gaps)\n󰌍  Back" | fzf --layout=reverse --prompt="  Gaps > " --height=$height)
         case "$choice" in
             *Tight*) change tight ;;
             *Separated*) change separated ;;

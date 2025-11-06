@@ -56,7 +56,14 @@ displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "YoUNiX Configure System Monitor"
-        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n  Back" | fzf --layout=reverse --prompt="  > " --height=90%)        
+
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+
+        # print current
+        yprint -c --color=green "Current system monitor: $SYSTEM_MONITOR"
+        
+        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *top*) change top ;;
             *htop*) change htop ;;

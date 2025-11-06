@@ -17,7 +17,7 @@
 sources=$(pactl list short sources | awk '{print $2 " | " $1}')
 
 # Let user select a source
-selection=$(echo "$sources" | fzf --prompt="  Select default input > " --height=40% --layout=reverse)
+selection=$(echo "$sources" | fzf --prompt="  > " --height=50% --layout=reverse)
 
 # Exit if nothing selected
 [[ -z "$selection" ]] && echo "No source selected." && exit 0

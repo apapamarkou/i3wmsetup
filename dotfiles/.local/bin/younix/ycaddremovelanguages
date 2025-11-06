@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Add/Remove Languages
+#
+
+showHelp() {
+    echo "YoUNiX Configure Terminal"
+    echo "Usage: ycterminal [OPTIONS]"
+    echo "Options:"
+    echo "  -t    Open in terminal"
+    echo "  -h    Show this help"
+    echo "Arguments can be combined: -vh, etc."
+}
+
+openTerminal() {
+    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycaddremovelanguages
+}
+
+displayMenu() {
+    [[ ! -f /etc/locale.gen ]] && echo "/etc/locale.gen not found!" && exit 1
+    tmpfile=$(mktemp)
+    current_locale=$(localectl status | grep "System Locale" | awk -F= '{print $2}' | xargs)
+
+    while true; do
+
+        while IFS= read -r rawline; do
+            [[ -z "$rawline" ]] && continue
+
+            line="$rawline"
+            status=""
+            if [[ "$line" =~ ^# ]]; then
+                status=""
+                line="${line#\#}"
+                line="${line#"${line%%[![:space:]]*}"}"
+            fi
+
+            code=$(echo "$line" | cut -d' ' -f1)
+            [[ -z "$code" ]] && continue
+
+            display_name="$code"
+            # Σήμανση αν είναι το ενεργό system locale
+            [[ "$code" == "$current_locale" ]] && display_name="$display_name (ACTIVE)"
+
+            printf "%s | %s | %s\n" "$status" "$display_name" "$code" >> "$tmpfile"
+        done < <(tail -n +18 /etc/locale.gen)
+
+        yprint -c --color=yellow "YoUNiX Add/Remove Languages"
+        yprint -c "Current locale: $current_locale  (ESC to exit)"
+
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+
+        choice=$(sort "$tmpfile" | fzf --prompt="  > " --height=$height --layout=reverse --with-nth=1,2,3)
+        rm -f "$tmpfile"
+
+        [[ -z "$choice" ]] && exit 0
+
+        locale=$(echo "$choice" | awk -F'|' '{print $3}' | xargs)
+
+        # Αν η επιλογή είναι ήδη το system locale → απενεργοποίησε
+        if [[ "$locale" == "$current_locale" ]]; then
+            sudo sed -i "s|^$locale|#$locale|" /etc/locale.gen
+            sudo locale-gen
+            # Προαιρετικά: θέτουμε system locale σε C.UTF-8
+            sudo localectl set-locale LANG=C.UTF-8
+            notify-send "Locale $locale deactivated, system locale set to C.UTF-8"
+            exit 0
+        fi
+
+        # Αν είναι σχολιασμένο, uncomment
+        if grep -q "^# *$locale" /etc/locale.gen; then
+            sudo sed -i "s|^# *$locale|$locale|" /etc/locale.gen
+        fi
+
+        # Generate και apply
+        sudo locale-gen "$locale"
+        sudo localectl set-locale LANG="$locale"
+    done
+
+}
+
+OPEN_TERMINAL=false
+
+while getopts "th" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu
+

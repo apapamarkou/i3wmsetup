@@ -67,7 +67,16 @@ displayMenu() {
     while true; do
         # clear
         yprint -c --color=yellow "YoUNiX Configure Notifications"
-        choice=$(echo -e "󰁜  top-right\n󰁛  top-left\n󰁃  bottom-right\n󰁂  bottom-left\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=50%)
+        
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+
+        # show current position
+        current_position=$(grep -oP 'origin\s*=\s*\K.*' ~/.config/dunst/dunstrc | tr -d '"')
+        yprint -c --color=green "󰂞  Current position: $current_position"
+
+
+        choice=$(echo -e "󰁜  top-right\n󰁛  top-left\n󰁃  bottom-right\n󰁂  bottom-left\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *top-right*) change top-right ;;
             *top-left*) change top-left ;;

@@ -12,38 +12,36 @@
 # Email: papamarkoua@gmail.com
 
 #
-# YoUNiX Configure Display
+# YoUNiX Localization
 #
 
 showHelp() {
-    echo "YoUNiX Configure Display"
-    echo "Usage: ycc [OPTIONS]"
+    echo "YoUNiX Localization"
+    echo "Usage: yclocalization [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
+    echo "Arguments can be combined: -vh, etc."
 }
 
 openTerminal() {
-    local args=""
-    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
-    [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycdisplay > /dev/null 2>&1 &
+    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Localization" ycterminal
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure Display"
-        
+        yprint -c --color=yellow "YoUNiX Configure Terminal"
+
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
-        choice=$(printf '󰍹  Monitor Configuration\n  Night Light\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);
-        [ -z "$choice" ] && exit 0
-        
+
+        choice=$(printf '  Add/Remove Languages\n  Configure Localization\n  Timezone\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);
         case "$choice" in
-            *Monitor*) arandr >/dev/null 2>&1 & ;;
-            *Night*) ycnightlight ;;
-            *) exit 0 ;;
+            *Remove*) ycaddremovelanguages;;
+            *Localization*) yclanguages ;;
+            *Timezone*) yctimezone ;;
+            *) return ;;  # Back ή κενή επιλογή
         esac
     done
 }
@@ -53,7 +51,7 @@ OPEN_TERMINAL=false
 while getopts "th" opt; do
     case $opt in
         t) OPEN_TERMINAL=true ;;
-        h) showHelp ;;
+        h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
     esac
 done
@@ -61,6 +59,6 @@ done
 if [ "$OPEN_TERMINAL" = true ]; then
     openTerminal
     exit 0
-else
-    displayMenu
 fi
+
+displayMenu

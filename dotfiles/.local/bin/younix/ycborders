@@ -67,7 +67,22 @@ displayMenu() {
     while true; do
         # clear
         yprint -c --color=yellow "YoUNiX Configure window borders"
-        choice=$(echo -e "󰎦  Normal\n󰎩  Thin\n󰎬  Thick\n󰌍  Back" | fzf --layout=reverse --prompt="  Gaps > " --height=40%)
+        # get the current border size
+        currentSize=$(grep "default_border pixel" "$i3config_file" | awk '{print $3}')
+        # get the current border size name
+        case "$currentSize" in
+            1px) currentSize="Thin" ;;
+            2px) currentSize="Normal" ;;
+            4px) currentSize="Thick" ;;
+            *) currentSize="Unknown" ;;
+        esac
+
+        yprint -c "Current border size: $currentSize   (ESC to exit)"
+
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+        
+        choice=$(echo -e "󰎦  Normal\n󰎩  Thin\n󰎬  Thick\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *Normal*) change normal ;;
             *Thin*) change thin ;;

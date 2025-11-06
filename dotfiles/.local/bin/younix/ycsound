@@ -12,12 +12,12 @@
 # Email: papamarkoua@gmail.com
 
 #
-# YoUNiX Configure Terminal
+# YoUNiX Configure Sound
 #
 
 showHelp() {
-    echo "YoUNiX Configure Terminal"
-    echo "Usage: ycterminal [OPTIONS]"
+    echo "YoUNiX Configure Sound"
+    echo "Usage: ycsound [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
@@ -25,24 +25,22 @@ showHelp() {
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycterminal
+    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycsound
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure Terminal"
-
+        yprint -c --color=yellow "YoUNiX Configure Sound"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-
-        # print current
-        yprint -c --color=green "Current Terminal: $TERMINAL"
-
-        choice=$(printf '  Default Terminal\n󰗽  Default Shell\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
+        choice=$(printf '󱡭  Audio Input\n󱡫  Audio Output\n  Volume Mixer\n  Sample Rate\n  Buffer Size\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
-            *Terminal*) ycdefaultterminal;;
-            *Shell*) ycdefaultshell ;;
+            *Input*) ycsoundinput ;;
+            *Output*) yccoundoutput ;;
+            *Mixer*) ycsoundmixer ;;
+            *Sample*) ycsamplerate ;;
+            *Buffer*) ycsoundbuffersize ;;
             *) return ;;  # Back ή κενή επιλογή
         esac
     done

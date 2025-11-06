@@ -61,7 +61,12 @@ displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "YoUNiX Select Default Shell"
-        choice=$(echo -e "  bash\n  zsh\n  fish\n󰌍  Back" | fzf --layout=reverse --height=50% --prompt="  Shell: ")
+        # current default shell
+        current=$(echo $SHELL | awk -F/ '{print $NF}')
+        yprint -c "Current default shell: $current"
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+        choice=$(echo -e "  bash\n  zsh\n  fish\n󰌍  Back" | fzf --layout=reverse --height=$height --prompt="  Shell: ")
         case $choice in
             *bash*) change bash ;;
             *zsh*) change zsh;;

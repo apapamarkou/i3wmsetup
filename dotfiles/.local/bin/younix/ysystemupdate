@@ -1,0 +1,155 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX System Update
+#
+
+showHelp() {
+    echo "YoUNiX Configure Theme"
+    echo "Usage: ycnightlight [OPTIONS]"
+    echo "Options:"
+    echo "  -t           Open in terminal"
+    echo "  -h           Show this help"
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ysystemupdate $args > /dev/null 2>&1 &
+}
+
+REPO_UPDATES=0
+AUR_UPDATES=0
+FLATPAK_UPDATES=0
+SNAP_UPDATES=0
+
+#Check is there are any repo updates and show the number of packages
+checkRepos() {
+    REPO_UPDATES=$(sudo pacman -Qu | wc -l)
+    # if count is 0 then yprint --green "No updates available"
+    if [ $REPO_UPDATES -eq 0 ]; then
+        echo "No updates available"
+    else
+        echo "Update $REPO_UPDATES Arch Repositoriy packages"
+    fi
+}
+
+checkAUR() {
+    AUR_UPDATES=$(yay -Qu | wc -l)
+    if ! command -v yay &> /dev/null; then
+        echo "Install Arch User Repository support"
+        return
+    fi
+    if [ $AUR_UPDATES -eq 0 ]; then
+        echo "No AUR updates available"
+    else
+        echo "Update $AUR_UPDATES Arch User Repository packages"
+    fi
+}
+
+checkFlatpak() {
+    # if flatpak is not installed
+    if ! command -v flatpak &> /dev/null; then
+        echo "Install flatpak support"
+        return
+    fi
+    FLATPAK_UPDATES=$(flatpak remote-ls --updates | wc -l)
+    if [ $FLATPAK_UPDATES -eq 0 ]; then
+        echo "No Flatpak updates available"
+    else
+        echo "Update $FLATPAK_UPDATES flatpak packages"
+    fi
+}
+
+checkSnap() {
+    # if snap is not installed
+    if ! command -v snap &> /dev/null; then
+        echo "Install Snap support"
+        return
+    fi
+    SNAP_UPDATES=$(snap refresh --list | wc -l)
+    if [ $SNAP_UPDATES -eq 0 ]; then
+        echo "No Snap updates available"
+    else
+        echo "Update $SNAP_UPDATES snap packages"
+    fi
+}   
+
+InstallYay() {
+    echo -e "\e[33mInstalling Yay AUR helper\e[0m"
+    echo
+    sudo pacman -S --needed git base-devel
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    cd /tmp/yay
+    makepkg -si
+    cd -
+    rm -rf /tmp/yay
+    read -p "Press Enter to continue..."
+}
+
+installFlatpak() {
+    echo -e "\e[33mInstalling Flatpak support\e[0m"
+    echo
+    sudo pacman -S flatpak
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    read -p "Press Enter to continue..."
+}
+
+installSnap() {
+    echo -e "\e[33mInstalling Snap support\e[0m"
+    echo
+    sudo pacman -S snapd
+    sudo systemctl enable --now snapd.socket
+    sudo ln -sf /var/lib/snapd/snap /snap
+    read -p "Press Enter to continue..."
+}
+
+start(){
+    figlet "YOUNIX"
+    echo
+    
+    # Build options array A-F
+    OPTION_A="A) Update All"
+    OPTION_B="B) $(checkRepos)"
+    OPTION_C="C) $(checkAUR)"
+    OPTION_D="D) $(checkFlatpak)"
+    OPTION_E="E) $(checkSnap)"
+    OPTION_F="F) No Thanks"
+    
+    options=("$OPTION_A" "$OPTION_B" "$OPTION_C" "$OPTION_D" "$OPTION_E" "$OPTION_F")
+    clear
+    while true; do
+        choice=$(printf "%s\n" "${options[@]}" | fzf --layout=reverse --prompt="  Select > " --height=10)
+        [ -z "$choice" ] && break
+        
+        case "$choice" in
+            A*|*"Update All"*) 
+                updateRepos
+                updateAUR
+                command -v flatpak &> /dev/null && updateFlatpak
+                command -v snap &> /dev/null && updateSnap
+                ;;
+            B*|*"Arch Repositoriy"*) updateRepos ;;
+            C*|*"Arch User Repository"*) updateAUR ;;
+            C*|*"Install Arch User"*) InstallYay ;;
+            D*|*"flatpak packages"*) updateFlatpak ;;
+            D*|*"Install flatpak"*) installFlatpak ;;
+            E*|*"snap packages"*) updateSnap ;;
+            E*|*"Install Snap"*) installSnap ;;
+            F*|*"No Thanks"*) break ;;
+        esac
+    done
+}
+

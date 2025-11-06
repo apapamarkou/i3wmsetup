@@ -57,7 +57,11 @@ displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "YoUNiX Select Default Terminal"
-        choice=$(echo -e "  alacritty\n  xterm\n󰌍  Back" | fzf --layout=reverse --height=50% --prompt="  Terminal: ")
+        # current default terminal
+        yprint -c "Current default terminal: $TERMINAL"
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+        choice=$(echo -e "  alacritty\n  xterm\n󰌍  Back" | fzf --layout=reverse --height=$height --prompt="  > ")
 
         case $choice in
             *alacritty*) changeTerminal alacritty && printMessage alacritty ;;

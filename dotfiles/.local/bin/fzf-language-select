@@ -13,31 +13,24 @@
 
 # FZF Language Selector for YOUNIX desktop environment
 
-clear
+change(){
 
-# Usage check
-if [[ -z "$1" ]]; then
-    echo "Usage: $0 <locale-variable>"
-    echo "Example: $0 LC_TIME"
-    exit 1
-fi
+    VAR="$1"
 
-VAR="$1"
+    # Check /etc/locale.gen exists
+    [[ ! -f /etc/locale.gen ]] && echo "❌ /etc/locale.gen not found!" && exit 1
 
-# Check /etc/locale.gen exists
-[[ ! -f /etc/locale.gen ]] && echo "❌ /etc/locale.gen not found!" && exit 1
+    # Let user pick a locale from /etc/locale.gen (all lines, including commented)
+    lang=$(grep -v '^#' /etc/locale.gen | awk '{print $1}' | fzf --prompt=" Select locale for $VAR > " --height=40% --layout=reverse)
 
-# Let user pick a locale from /etc/locale.gen (all lines, including commented)
-lang=$(grep -v '^#' /etc/locale.gen | awk '{print $1}' | fzf --prompt=" Select locale for $VAR > " --height=40% --layout=reverse)
+    # Exit if nothing selected
+    [[ -z "$lang" ]] && echo "No locale selected." && exit 1
 
-# Exit if nothing selected
-[[ -z "$lang" ]] && echo "No locale selected." && exit 1
+    # Apply the selected locale to the given variable
+    if grep -q "^export $VAR=" "$HOME/.profile"; then
+        sed -i "s|^export $VAR=.*|export $VAR=\"$lang\"|" "$HOME/.profile"
+    else
+        echo "export $VAR=\"$lang\"" >> "$HOME/.profile"
+    fi
 
-# Apply the selected locale to the given variable
-if grep -q "^export $VAR=" "$HOME/.profile"; then
-    sed -i "s|^export $VAR=.*|export $VAR=\"$lang\"|" "$HOME/.profile"
-else
-    echo "export $VAR=\"$lang\"" >> "$HOME/.profile"
-fi
-
-notify-send "🌐 $VAR set to $lang (next login)"
+}

@@ -61,13 +61,22 @@ redshiftChange() {
             fi
             ;;
     esac
+    sleep 4
 }
 
 displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "YoUNiX Configure Night Light"
-        choice=$(echo -e "󰞏  Enable\n󱜞  Disable\n󰌍  Back" | fzf --layout=reverse --height=40 --prompt="  > ")
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 2))
+        # show current state
+        if [ -n "$(pgrep redshift)" ]; then
+            yprint -c --color=green "󰞏  Night light is enabled"
+        else
+            yprint -c --color=red "󱜞  Night light is disabled"
+        fi
+        choice=$(echo -e "󰞏  Enable\n󱜞  Disable\n󰌍  Back" | fzf --layout=reverse --height=$height --prompt="  > ")
         case $choice in
             *Enable*) redshiftChange on ;;
             *Disable*) redshiftChange off ;;

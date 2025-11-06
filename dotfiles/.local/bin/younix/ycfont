@@ -118,7 +118,9 @@ displayMenu() {
     while true; do
         # clear
         yprint -c --color=yellow "YoUNiX Configure Font"
-        choice=$(echo -e "󰧳  Small Font\n󰧳  Normal Font\n󰧴  Large Font\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=50%)
+        # relative fzf height by terminal height
+        height=$(($(tput lines) - 1))
+        choice=$(echo -e "󰧳  Small Font\n󰧳  Normal Font\n󰧴  Large Font\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *Small*) setFont small ;;
             *Normal*) setFont normal ;;

@@ -32,6 +32,20 @@ export PATH=$HOME/.local/bin/younix:$PATH
 export PATH=$HOME/bin:$PATH
 
 # theme related
-export QT_QPA_PLATFORMTHEME=qt6ct
-export QT_STYLE_OVERRIDE=kvantum
+# export QT_QPA_PLATFORMTHEME=qt6ct
+export QT_QPA_PLATFORMTHEME=gtk3
+# export QT_QPA_PLATFORMTHEME=xdgdesktopportal
+export QT_FONT_DPI=96
+export QT_QPA_FONTDIR=/usr/share/fonts
+export QT_ICON_THEME=Breeze-Dark
 
+# Language Settings
+export LC_NUMERIC="en_US.UTF-8"
+export LANG="el_GR.UTF-8"
+export LC_CTYPE="el_GR.UTF-8"
+export LC_TIME="el_GR.UTF-8"
+export LC_COLLATE="el_GR.UTF-8"
+export LC_MONETARY="en_US.UTF-8"
+export LC_PAPER="en_US.UTF-8"
+export LC_NAME="en_US.UTF-8"
+export LC_ADDRESS="en_US.UTF-8"

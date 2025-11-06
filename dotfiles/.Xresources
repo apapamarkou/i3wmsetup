@@ -1,9 +1,9 @@
 ! --- Xterm Configuration to mimic Alacritty Settings ---
 ! Font and Size
-XTerm*faceName: JetBrainsMonoNL Nerd Font:size=normal
-XTerm*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=normal
-XTerm*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=normal
-XTerm*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=normal
+XTerm*faceName: JetBrainsMonoNL Nerd Font:size=9
+XTerm*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=9
+XTerm*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=9
+XTerm*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=9
 
 ! Colors
 XTerm*background: #1D1F21

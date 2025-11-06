@@ -1,5 +1,5 @@
 * {
-  font: "Adwaita Sans normal";
+  font: "Adwaita Sans 9";
 
   bg0    : #1f1f1f80;
   bg1    : #202020bf;
@@ -34,13 +34,13 @@ window {
 }
 
 mainbox {
-  padding : 24px;
-  spacing : 24px;
+  padding : 20px;
+  spacing : 20px;
 }
 
 inputbar {
-  padding          : 8px;
-  spacing          : 4px;
+  padding          : 4px;
+  spacing          : 2px;
   children         : [ icon-search, entry ];
   border           : 0 0 2px 0 solid;
   border-color     : @accent;
@@ -65,20 +65,20 @@ entry {
 }
 
 textbox {
-  padding          : 4px 8px;
+  padding          : 2px 4px;
   background-color : @bg2;
 }
 
 listview {
   columns       : 1;
-  spacing       : 8px;
+  spacing       : 4px;
   fixed-height  : true;
   fixed-columns : true;
 }
 
 element {
   spacing       : 1em;
-  padding       : 8px;
+  padding       : 4px;
   border-radius : 2px;
 }
 

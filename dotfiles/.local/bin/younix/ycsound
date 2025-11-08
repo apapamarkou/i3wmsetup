@@ -15,6 +15,9 @@
 # YoUNiX Configure Sound
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Sound"
+
 showHelp() {
     echo "YoUNiX Configure Sound"
     echo "Usage: ycsound [OPTIONS]"
@@ -25,22 +28,22 @@ showHelp() {
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycsound
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure Sound"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
         choice=$(printf '󱡭  Audio Input\n󱡫  Audio Output\n  Volume Mixer\n  Sample Rate\n  Buffer Size\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
             *Input*) ycsoundinput ;;
-            *Output*) yccoundoutput ;;
+            *Output*) ycsoundoutput ;;
             *Mixer*) ycsoundmixer ;;
             *Sample*) ycsamplerate ;;
-            *Buffer*) ycsoundbuffersize ;;
+            *Buffer*) ycbuffersize ;;
             *) return ;;  # Back ή κενή επιλογή
         esac
     done

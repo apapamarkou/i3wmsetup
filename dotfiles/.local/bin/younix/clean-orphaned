@@ -1,7 +1,7 @@
 #!/bin/bash
-figlet "YOUNIX"
+figlet "$DISTRO_NAME"
 
-echo -e "\e[33mYour System is about to be updated\e[0m"
+echo -e "\e[33mYou are about to clean unused packages\e[0m"
 echo
 
 sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || echo 'No orphaned packages found'; 

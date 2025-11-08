@@ -12,15 +12,17 @@
 # Email: papamarkoua@gmail.com
 
 #
-# YoUNiX Config Look
+# YoUNiX Configure Look
 #
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Look"
 
 showHelp() {
-    echo "YoUNiX Select Default Shell"
-    echo "Usage: ycc [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
@@ -28,18 +30,18 @@ showHelp() {
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" yclook
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Config Look"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
         choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰛖  Font Size\n󰎟  Notifications\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height )
         case $choice in
-            *Wallpaper*) ycwallpaper ;;
+            *Wallpaper*) ycwallpaper -t;;
             *Theme*) yctheme ;;
             *Font*) ycfont ;;
             *Notifications*) ycnotifications ;;

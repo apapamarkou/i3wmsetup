@@ -15,9 +15,12 @@
 # YoUNiX Configure Terminal
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Terminal"
+
 showHelp() {
-    echo "YoUNiX Configure Terminal"
-    echo "Usage: ycterminal [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
@@ -25,19 +28,16 @@ showHelp() {
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycterminal
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure Terminal"
+        yprint -c --color=yellow "YoUNiX $TITLE"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-
-        # print current
-        yprint -c --color=green "Current Terminal: $TERMINAL"
 
         choice=$(printf '  Default Terminal\n󰗽  Default Shell\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
         case "$choice" in

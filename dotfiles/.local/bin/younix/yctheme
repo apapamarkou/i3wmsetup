@@ -15,12 +15,14 @@
 # YoUNiX Configure Theme
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Theme"
 MUTE_NOTIFY=false
 MUTE_ECHO=false
 
 showHelp() {
-    echo "YoUNiX Configure Theme"
-    echo "Usage: ycnightlight [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
     echo "  --set=STATE  Set theme (dark/light)"
@@ -34,7 +36,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" yctheme $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 set() {
@@ -56,11 +58,11 @@ changeGtkTheme() {
         dark) 
             gsettings set org.gnome.desktop.interface gtk-theme "Materia-dark" 
             propertyChange "gtk-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "Materia-dark"
-            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-4.0/settings.ini" "breeze-dark"
+            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "breeze-dark"
             ;;
         light) gsettings set org.gnome.desktop.interface gtk-theme "Materia-light" 
             propertyChange "gtk-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "Materia-light"
-            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-4.0/settings.ini" "breeze"
+            propertyChange "gtk-icon-theme-name" "$HOME/.config/gtk-3.0/settings.ini" "breeze"
             ;;
     esac
 }
@@ -106,7 +108,7 @@ changeKeepassxcTheme() {
 displayMenu() {
     while true; do
         # clear
-        yprint -c --color=yellow "YoUNiX Configure Theme"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
         

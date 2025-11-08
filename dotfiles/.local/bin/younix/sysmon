@@ -11,7 +11,8 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# Disk Space Explorer window launcher for YOUNIX desktop environment
+# System Monitor Window for YOUNIX desktop environment
 
 # Default system monitor is confirued in .profile
-terminal --columns=140 --lines=40 --title="Disk Space Explorer" dua i
+SCRIPT_NAME=$(basename "$0")
+flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=140 --lines=40 --title="$FLOATING_PREFIX System Monitor" $SYSTEM_MONITOR

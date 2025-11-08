@@ -12,17 +12,17 @@
 
 .config/keepassxc
 
-.config/Kvantum/
-
 .config/nnn/
 
-.config/polybar/
+.config/pipewire
 
-.config/qt6ct/
+.config/polybar/
 
 .config/rofi/
 
 .config/xsettingsd
+
+.config/yweather/view_options.conf
 
 .config/mimeapps.list
 .config/starship.toml
@@ -31,7 +31,6 @@
 
 .local/share/applications/text-edit.desktop
 .local/share/applications/img-view.desktop
-.local/share/applications/wallpaper-picker.desktop
 
 .local/share/shell/
 

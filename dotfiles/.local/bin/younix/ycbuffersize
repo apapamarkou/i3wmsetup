@@ -17,6 +17,8 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Select BufferSize"
 CONFIG_FILE="$HOME/.config/pipewire/pipewire.conf"
 
 # Read the current default.clock.quantum from the user's config file
@@ -27,8 +29,8 @@ current_quantum=$(grep 'default.clock.quantum' "$CONFIG_FILE" | grep -v 'quantum
 [[ -z "$current_quantum" ]] && current_quantum="1024"
 
 showHelp() {
-    echo "YoUNiX Select BufferSize"
-    echo "Usage: ycsoundbuffersize [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t              Open in terminal"
     echo "  -s BUFFERSIZE   Set BufferSize"
@@ -42,7 +44,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Sound Buffersize" ycsoundbuffersize $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 change() {
@@ -78,9 +80,9 @@ printMessage() {
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Select BufferSize"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         current_quantum=$(grep 'default.clock.quantum' "$CONFIG_FILE" | grep -v 'quantum-' | head -n 1 | awk '{print $3}' | tr -d '[:space:]')
-        yprint -c "Current BufferSize: $current_quantum "
+        yprint -c --color=green "Current BufferSize: $current_quantum "
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
         choice=$(echo -e "32\n64\n128\n256\n512\n1024\n2048" | fzf --layout=reverse --height=$height --prompt="  > ")

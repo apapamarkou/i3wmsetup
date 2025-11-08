@@ -1,0 +1,4 @@
+#!/bin/bash
+
+SCRIPT_NAME=$(basename "$0")
+flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=120 --lines=24 --title="$FLOATING_PREFIX Blue Tooth Devices" bluetui

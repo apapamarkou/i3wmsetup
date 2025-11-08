@@ -17,12 +17,14 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure I3 window borders"
 i3config_file=~/.config/i3/config
 
 
 showHelp() {
     echo "YoUNiX Configure I3 window borders"
-    echo "Usage: ycgaps [OPTIONS]"
+    echo "Usage: ycborders [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
     echo "  -s           Set theme (tight/separated/loose)"
@@ -36,7 +38,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycborders $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 printMessage() {
@@ -66,7 +68,7 @@ change() {
 displayMenu() {
     while true; do
         # clear
-        yprint -c --color=yellow "YoUNiX Configure window borders"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         # get the current border size
         currentSize=$(grep "default_border pixel" "$i3config_file" | awk '{print $3}')
         # get the current border size name

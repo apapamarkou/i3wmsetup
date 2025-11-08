@@ -1,5 +1,5 @@
 #!/bin/bash
-figlet "YOUNIX"
+figlet "$DISTRO_NAME"
 
 echo -e "\e[33mUpdate Keyring\e[0m"
 echo

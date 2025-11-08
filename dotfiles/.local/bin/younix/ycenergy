@@ -12,14 +12,14 @@
 # Email: papamarkoua@gmail.com
 
 #
-# YoUNiX Control Center
+# YoUNiX Configure Energy
 #
 
 SCRIPT_NAME=$(basename "$0")
-TITLE="Control Center"
+TITLE="Configure Energy"
 
 show_help() {
-    echo "#DISTRO_NAME $TITLE"
+    echo "$DISTRO_NAME $TITLE"
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
@@ -38,21 +38,12 @@ display_menu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(echo -e "󰍹  Display\n  Look & Theme\n  System Monitor\n󰀂  Network\n  Bluetooth\n  Terminal Preferences\n󰗅  Sound\n  Localization\n  System Maintenance\n⚡ Energy\n󰐥  Power Actions\n  Exit" | fzf --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "⚡ Power Profiles\n󰤄  Autosuspend\n  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in
-            *Display*) ycdisplay ;;
-            *Look*) yclook ;;
-            *Monitor*) ycsystemmonitor ;;
-            *Network*) netconf ;;
-            *Bluetooth*) bluetoothwindow ;;
-            *Terminal*) ycterminal ;;
-            *Sound*) ycsound ;;
-            *Localization*) yclocalization ;;
-            *Maintenance*) ycsystem ;;
-            *Energy*) ycenergy ;;
-            *Power*) ycpower ;;
+            *Profiles*) ycpowerprofiles ;;
+            *Autosuspend*) ycsuspend ;;
             *) exit 0 ;;
         esac
     done

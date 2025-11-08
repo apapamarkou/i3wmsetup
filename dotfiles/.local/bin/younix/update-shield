@@ -1,8 +1,8 @@
 #!/bin/bash
-figlet "YOUNIX"
+figlet "$DISTRO_NAME Shield"
 
 echo -e "\e[33mSecurity blocker hBlock\nhttps://github.com/hectorm/hblock\e[0m"
-echo
+sudo echo
 
 echo -e "\e[33mUpdating hBlock to latest version...\e[0m"
 echo

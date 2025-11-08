@@ -15,23 +15,26 @@
 # YoUNiX Localization
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Localization"
+
 showHelp() {
-    echo "YoUNiX Localization"
-    echo "Usage: yclocalization [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
-    echo "Arguments can be combined: -vh, etc."
 }
 
+
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Localization" ycterminal
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure Terminal"
+        yprint -c --color=yellow "YoUNiX $TITLE"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))

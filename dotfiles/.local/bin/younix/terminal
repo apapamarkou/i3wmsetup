@@ -79,3 +79,4 @@ case "$TER" in
         exec alacritty ${TITLE:+--title="$TITLE"} -o window.dimensions.columns=$COLS -o window.dimensions.lines=$LINES ${EXECUTABLE:+-e $EXECUTABLE $ARGS}
         ;;
 esac
+

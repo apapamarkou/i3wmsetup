@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=KeePassXC
-GenericName=Password Manager
+GenericName=Διαχειριστής Κωδικών Πρόσβασης
 Exec=keepassxc
 TryExec=keepassxc
 Icon=keepassxc

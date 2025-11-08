@@ -6,14 +6,20 @@ export BROWSER=firefox
 export TERMINAL=xterm
 export TERM=xterm
 export PAGER="bat"
-export SYSTEM_MONITOR="htop"
+export SYSTEM_MONITOR=htop
 export NETWORK_CONFIG=nmtui
 export SOUND_CONFIG=alsamixer
 export MUSIC_PLAYER=fzf-music-player
 export MUSIC_FOLDER=$HOME/Music
 export FILE_MANAGER=files
-export APPLICATION_LAUNCHER=launcher
-export CONTROL_PANEL=fzf-cc-window
+# export APPLICATION_LAUNCHER=launcher
+export APPLICATION_LAUNCHER="yapps -t"
+export CONTROL_PANEL="ycc -t"
+
+# System Variables
+export DISTRO_NAME="YoUNiX"
+export LOCK_DIR=$HOME/.config/ylock
+export FLOATING_PREFIX=":YoUNiX"
 
 export WALLPAPER_DIR=$HOME/Pictures/Wallpapers
 
@@ -40,12 +46,3 @@ export QT_QPA_FONTDIR=/usr/share/fonts
 export QT_ICON_THEME=Breeze-Dark
 
 # Language Settings
-export LC_NUMERIC="en_US.UTF-8"
-export LANG="el_GR.UTF-8"
-export LC_CTYPE="el_GR.UTF-8"
-export LC_TIME="el_GR.UTF-8"
-export LC_COLLATE="el_GR.UTF-8"
-export LC_MONETARY="en_US.UTF-8"
-export LC_PAPER="en_US.UTF-8"
-export LC_NAME="en_US.UTF-8"
-export LC_ADDRESS="en_US.UTF-8"

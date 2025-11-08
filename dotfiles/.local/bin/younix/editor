@@ -12,4 +12,5 @@
 # Email: papamarkoua@gmail.com
 
 # Text Editor winddow launcher for YOUNIX desktop environment
-terminal --columns=140 --lines=40 --title="TTY" micro "$1"
+
+terminal --columns=140 --lines=40 --title="$DDISTRO_NAME Text Editor" micro "$1"

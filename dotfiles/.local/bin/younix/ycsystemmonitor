@@ -17,10 +17,12 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure System Monitor"
 
 showHelp() {
-    echo "YoUNiX Configure System Monitor"
-    echo "Usage: ycsystemmonitor [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t              Open in terminal"
     echo "  -s MONITOR      Set system monitor (top/htop/btop)"
@@ -34,7 +36,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycsystemmonitor $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 printMessage() {
@@ -48,26 +50,27 @@ printMessage() {
 
 change() {
     local file="$HOME/.profile"
-    sed -i "s|^export SYSTEM_MONITOR=.*|export SYSTEM_MONITOR=\"$1\"|" "$file" 2>/dev/null || echo "export SYSTEM_MONITOR=\"$1\"" >> "$file"
-    printMessage "✅ System monitor changed to $1." "The change will be available at the next login."
+    sed -i "s|^export SYSTEM_MONITOR=.*|export SYSTEM_MONITOR=$1|" "$file" 2>/dev/null || echo "export SYSTEM_MONITOR=$1" >> "$file"
+    export SYSTEM_MONITOR=$1
+    printMessage $1
 }
 
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Configure System Monitor"
+        yprint -c --color=yellow "YoUNiX $TITLE"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
 
         # print current
-        yprint -c --color=green "Current system monitor: $SYSTEM_MONITOR"
+        yprint -c --color=green "Current: $SYSTEM_MONITOR"
         
-        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
-            *top*) change top ;;
             *htop*) change htop ;;
             *btop*) change btop ;;
+            *top*) change top ;;
             *) exit 0 ;;
         esac
     done

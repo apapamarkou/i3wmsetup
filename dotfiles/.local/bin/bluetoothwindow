@@ -1,3 +1,0 @@
-#!/bin/bash
-
-terminal --columns=120 --lines=24 --title="Blue Tooth Devices" bluetui

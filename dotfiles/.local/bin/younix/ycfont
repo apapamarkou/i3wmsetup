@@ -18,10 +18,12 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Font"
 
 showHelp() {
-    echo "YoUNiX Configure Font"
-    echo "Usage: ycfont [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
     echo "  -s STATE     Set font (small/normal/large)"
@@ -35,7 +37,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Configure Font" ycfont $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 setFont() {
@@ -114,12 +116,30 @@ changePolybarFont() {
 }
 
 
+getCurrentFontSize() {
+    local gtk_file="$HOME/.config/gtk-3.0/settings.ini"
+    if [[ -f "$gtk_file" ]]; then
+        local size=$(grep "gtk-font-name" "$gtk_file" | cut -d'=' -f2 | sed 's/"//g' | awk '{print $NF}')
+        case $size in
+            9) echo "Small" ;;
+            11) echo "Normal" ;;
+            13) echo "Large" ;;
+            *) echo "Custom" ;;
+        esac
+    else
+        echo "Normal"
+    fi
+}
+
 displayMenu() {
     while true; do
         # clear
-        yprint -c --color=yellow "YoUNiX Configure Font"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+        # get the current font size
+        currentSize=$(getCurrentFontSize)
+        yprint -c --color=green "Current Font Size: $currentSize"
         # relative fzf height by terminal height
-        height=$(($(tput lines) - 1))
+        height=$(($(tput lines) -2))
         choice=$(echo -e "󰧳  Small Font\n󰧳  Normal Font\n󰧴  Large Font\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *Small*) setFont small ;;

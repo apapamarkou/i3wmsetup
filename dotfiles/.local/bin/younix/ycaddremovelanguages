@@ -15,9 +15,12 @@
 # YoUNiX Add/Remove Languages
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Add/Remove Languages"
+
 showHelp() {
-    echo "YoUNiX Configure Terminal"
-    echo "Usage: ycterminal [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
@@ -25,7 +28,7 @@ showHelp() {
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycaddremovelanguages
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 displayMenu() {
@@ -39,9 +42,9 @@ displayMenu() {
             [[ -z "$rawline" ]] && continue
 
             line="$rawline"
-            status=""
+            status="A"
             if [[ "$line" =~ ^# ]]; then
-                status=""
+                status="I"
                 line="${line#\#}"
                 line="${line#"${line%%[![:space:]]*}"}"
             fi
@@ -50,14 +53,13 @@ displayMenu() {
             [[ -z "$code" ]] && continue
 
             display_name="$code"
-            # Σήμανση αν είναι το ενεργό system locale
             [[ "$code" == "$current_locale" ]] && display_name="$display_name (ACTIVE)"
 
             printf "%s | %s | %s\n" "$status" "$display_name" "$code" >> "$tmpfile"
         done < <(tail -n +18 /etc/locale.gen)
 
-        yprint -c --color=yellow "YoUNiX Add/Remove Languages"
-        yprint -c "Current locale: $current_locale  (ESC to exit)"
+        yprint -c --color=yellow "YoUNiX $TITLE"
+        yprint -c "[Enter] to toggle [A]ctive [I]nactive"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

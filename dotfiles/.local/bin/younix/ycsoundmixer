@@ -15,4 +15,7 @@
 # YoUNiX Sound Mixer
 #
 
-terminal --columns=80 --lines=24 --title="Sound Control" $SOUND_CONFIG
+SCRIPT_NAME=$(basename "$0")
+TITLE="Sound Mixer"
+
+flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=140 --lines=24 --title="$FLOATING_PREFIX $TITLE" $SOUND_CONFIG

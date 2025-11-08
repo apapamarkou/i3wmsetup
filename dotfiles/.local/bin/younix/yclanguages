@@ -15,16 +15,19 @@
 # YoUNiX Configure Languages
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Languages"
+
 showHelp() {
-    echo "YoUNiX Configure Languages"
-    echo "Usage: yclanguages [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
 }
 
 openTerminal() {
-    flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Localization" yclanguages
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 notifyChange() {
@@ -44,7 +47,7 @@ changeLanguage(){
     # relative fzf height by terminal height
     height=$(($(tput lines) - 2))
 
-    yprint -c --color=yellow "YoUNiX Select language"
+    yprint -c --color=yellow "YoUNiX $TITLE"
 
 
     # Let user pick a locale from /etc/locale.gen (all lines, including commented)

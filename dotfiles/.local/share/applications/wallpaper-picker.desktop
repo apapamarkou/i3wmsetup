@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=Wallpaper Picker
-Comment=Select and change wallpaper background
-Exec=wallpaper-picker-window
-Icon=preferences-desktop-wallpaper
-Terminal=false
-Type=Application
-Categories=Utility;

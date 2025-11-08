@@ -17,10 +17,12 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Select Default Terminal"
 
 showHelp() {
-    echo "YoUNiX Select Default Terminal"
-    echo "Usage: ycdefaultterminal [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t              Open in terminal"
     echo "  -s TERMINAL     Set default terminal"
@@ -34,7 +36,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycdefaultterminal $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 changeTerminal() {
@@ -56,9 +58,9 @@ printMessage() {
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX Select Default Terminal"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         # current default terminal
-        yprint -c "Current default terminal: $TERMINAL"
+        yprint -c --color=green "Current Terminal: $TERMINAL"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
         choice=$(echo -e "  alacritty\n  xterm\n󰌍  Back" | fzf --layout=reverse --height=$height --prompt="  > ")

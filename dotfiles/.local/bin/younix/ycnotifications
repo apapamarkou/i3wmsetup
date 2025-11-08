@@ -17,10 +17,12 @@
 
 MUTE_NOTIFY=false
 MUTE_ECHO=false
+SCRIPT_NAME=$(basename "$0")
+TITLE="Configure Notifications"
 
 showHelp() {
-    echo "YoUNiX Configure Notifications"
-    echo "Usage: ycnightlight [OPTIONS]"
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
     echo "  -s POSITION  Set position (top-left/top-right/bottom-left/bottom-right)"
@@ -34,7 +36,7 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n ~/.config/lock terminal --columns=50 --lines=15 --title="YoUNiX Control Center" ycnotifications $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
 }
 
 printMessage() {
@@ -66,7 +68,7 @@ change() {
 displayMenu() {
     while true; do
         # clear
-        yprint -c --color=yellow "YoUNiX Configure Notifications"
+        yprint -c --color=yellow "YoUNiX $TITLE"
         
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

@@ -11,7 +11,6 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# Calendar Window launcher for YOUNIX desktop environment
-
 # Default system monitor is confirued in .profile
-terminal --columns=150 --lines=40 --title="System Calendar" calcurse
+SCRIPT_NAME=$(basename "$0")
+flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=80 --lines=24 --title="$FLOATING_PREFIX Network Configuration" $NETWORK_CONFIG

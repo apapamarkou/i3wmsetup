@@ -5,7 +5,7 @@ tiling_drag modifier titlebar
 
 font pango:JetBrainsMono Nerd Font normal
 
-gaps inner 0px
+gaps inner 5px
 smart_gaps inverse_outer
 
 default_border pixel 1px

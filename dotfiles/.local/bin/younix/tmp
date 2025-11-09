@@ -1,0 +1,63 @@
+[ ][Rep] zsh-completions
+[ ][Rep] zsh-doc
+[I][Rep] zsh-history-substring-search
+[ ][Rep] zsh-lovers
+[ ][Rep] zsh-syntax-highlighting
+[ ][Rep] zshdb
+[ ][Rep] zssh
+[ ][Rep] zsync
+[ ][Rep] zug
+[I][Rep] zutty
+[I][Rep] zvbi
+[I][Rep] zxing-cpp
+[ ][Rep] zycore-c
+[ ][Rep] zydis
+[ ][Rep] zynaddsubfx
+[ ][Rep] zypper
+[ ][Rep] zziplib
+[ ][Rep] zzuf
+
+package="[I][Rep]bash"
+package=$(echo "$package" | sed 's/^\(\[[^]]*\]\)*//')
+echo $package
+
+
+Why package is cleared in the togglePackage method and not in the getPackageInfo method?
+
+togglePackage() {
+    local package="$1"
+    local is_installed=false
+    
+    # Check if package is marked as installed
+    if [[ "$package" =~ ^\[I\] ]]; then
+        is_installed=true
+    fi
+    
+    # Extract package name from format like "[I][Rep] package-name" or "[ ][Rep] package-name"
+    package=$(echo "$package" | sed 's/^\[[I ]\]\[Rep\] //')
+    
+    if [[ "$is_installed" == true ]]; then
+        echo "Uninstalling $package..."
+        sudo pacman -R "$package"
+    else
+        echo "Installing $package..."
+        sudo pacman -S "$package" || yay -S "$package"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+getPackageInfo() {
+    local package=$1
+    
+    # Remove all leading [tags] including multiple consecutive ones
+    # package="${package:10}"    # Debug
+    # package="${package%\'}"   # αφαιρεί trailing '
+    package=$(echo "$package" | sed 's/^\[[I ]\]\[Rep\] //')
+    
+    # Skip menu options
+    [[ "$package" =~ ^(Refresh|Back)$ ]] && return
+    
+    # Show package info
+    pacman -Si "$package" 2>/dev/null || echo "Package information not available"
+}

@@ -30,31 +30,79 @@ showHelp() {
 }
 
 openTerminal() {
-    nohup flock -n ~/.config/lock terminal --columns=120 --lines=40 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
+    nohup flock -n ~/.config/lock terminal --columns=120 --lines=35 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
 }
 
 refreshPackages() {
-    notify-send "Refreshing package database..."
+    echo
+    echo "Refreshing package database..."
     mkdir -p "$CONFIG_DIR"
     
-    notify-send "Fetching official packages..."
-    pacman -Slq | sed 's/^/[Rep] /' > "$PACKAGE_INFO.tmp"
+    echo
+    echo "Fetching official packages..."
+    if pacman -Slq > "$PACKAGE_INFO.tmp" 2>/dev/null; then
+        yprint --color=green "Official packages fetched successfully"
+    else
+        yprint --color=red "Warning: Failed to fetch official packages"
+        touch "$PACKAGE_INFO.tmp"
+        ERRORS=true
+    fi
     
+    echo
     if command -v yay >/dev/null 2>&1; then
-        notify-send "Fetching AUR packages..."
-        yay -Slq --aur | sed 's/^/[AUR] /' >> "$PACKAGE_INFO.tmp"
+        echo "Fetching AUR packages..."
+        if yay -Slq --aur | sed 's/^/AUR:/' >> "$PACKAGE_INFO.tmp" 2>/dev/null; then
+            yprint --color=green "AUR packages fetched successfully"
+        else
+            yprint --color=red "Warning: Failed to fetch AUR packages (service may be unavailable)"
+            ERRORS=true
+        fi
     fi
     
     mv "$PACKAGE_INFO.tmp" "$PACKAGE_INFO"
-    notify-send "Package database updated!"
+    
+    echo
+    echo "Package database updated!"
+    echo
+    # if ERRORS then press any key
+    if [[ "$ERRORS" == true ]]; then
+        read -n 1 -s -r -p "Press any key to continue..."
+    else
+        sleep 3
+    fi
+}
+
+showSystemStats() {
+    local total_available=$(wc -l < "$PACKAGE_INFO" 2>/dev/null || echo "0")
+    local total_installed=$(pacman -Q | wc -l)
+    local disk_space=$(df -h /var/cache/pacman/pkg | awk 'NR==2 {print $3}')
+    
+    yprint -c --color=yellow "  System Package Statistics"
+    yprint -c --color=yellow "═══════════════════════════════"
+    echo
+    echo "  Total Packages Available: $total_available"
+    echo "  Total Packages Installed: $total_installed"
+    echo "󰏓  Available Disk Space: $disk_space"
+    echo 
+    echo "󰑐  Select 'Refresh Database' to update"
+    echo "   the package list from repositories"
 }
 
 getPackageInfo() {
-    local package="$1"
+    local package=$1
     
-    # Extract package name
-    package=$(echo "$package" | sed 's/^\[.\] \[...\] //')
+    # Show stats for Refresh Database option
+    if [[ "$1" =~ "Refresh Database" ]]; then
+        showSystemStats
+        return
+    fi
     
+    package=$(perl -pe 's/^(?:\[[^\]]*\]\s*)+//' <<< "$1")
+    
+    # Skip menu options
+    [[ "$package" =~ ^(Exit)$ ]] && return
+    
+    # Show package info
     if [[ "$1" =~ \[AUR\] ]]; then
         yay -Si "$package" 2>/dev/null || echo "Package information not available"
     else
@@ -62,7 +110,17 @@ getPackageInfo() {
     fi
 }
 
+
+
 togglePackage() {
+    echo
+    text="$DISTRO_NAME  Software"
+    cols=$(tput cols)                   # πλάτος τερματικού
+    figured=$(figlet "$text")           # figlet output
+    while IFS= read -r line; do
+        printf "%*s\n" $(( (${#line} + cols) / 2 )) "$line"
+    done <<< "$figured"
+    
     local package="$1"
     local is_installed=false
     
@@ -71,14 +129,23 @@ togglePackage() {
         is_installed=true
     fi
     
-    # Extract package name
-    package=$(echo "$package" | sed 's/^\[.\] \[...\] //')
+    # Extract package name from format like "[I][Rep] package-name" or "[ ][Rep] package-name"
+    package=$(echo "$package" | sed 's/^\(\[[^]]*\]\)* *//')
+    if [[ "$1" =~ \[AUR\] ]]; then
+        REPO="AUR"
+    else
+        REPO="Repositories"
+    fi
+    
+
     
     if [[ "$is_installed" == true ]]; then
-        echo "Uninstalling $package..."
+        yprint --color=red -c "Uninstalling package: $package..."
+        echo
         sudo pacman -R "$package"
     else
-        echo "Installing $package..."
+        yprint --color=green -c "Installing $package from $REPO..."
+        echo
         if [[ "$1" =~ \[AUR\] ]]; then
             yay -S "$package"
         else
@@ -97,29 +164,33 @@ displayMenu() {
     
     while true; do
         clear
+        height=$(($(tput lines) - 1))
         yprint -c --color=yellow "YoUNiX $TITLE"
         
-        # Get installed packages
-        local installed_packages=$(pacman -Q | awk '{print $1}')
+        # Create package list with installation status using join for speed
+        local packages=$(pacman -Q | awk '{print $1}' | sort > /tmp/installed.tmp
+        grep -v '^AUR:' "$PACKAGE_INFO" | sort > /tmp/official.tmp
+        grep '^AUR:' "$PACKAGE_INFO" | sed 's/^AUR://' | sort > /tmp/aur.tmp
         
-        # Create package list with installation status
-        local packages=$(while read -r line; do
-            package=$(echo "$line" | sed 's/^\[...\] //')
-            if echo "$installed_packages" | grep -q "^$package$"; then
-                echo "[I] $line"
-            else
-                echo "[ ] $line"
-            fi
-        done < "$PACKAGE_INFO")
+        # Official packages
+        join -t' ' /tmp/installed.tmp /tmp/official.tmp | awk '{print "[I][Rep] " $1}'
+        join -v2 -t' ' /tmp/installed.tmp /tmp/official.tmp | awk '{print "[ ][Rep] " $1}'
         
-        local options=$(echo -e "$packages\n🔄 Refresh Database\n󰌍 Back")
+        # AUR packages
+        join -t' ' /tmp/installed.tmp /tmp/aur.tmp | awk '{print "[I][AUR] " $1}'
+        join -v2 -t' ' /tmp/installed.tmp /tmp/aur.tmp | awk '{print "[ ][AUR] " $1}'
+        
+        rm -f /tmp/installed.tmp /tmp/official.tmp /tmp/aur.tmp)
+        
+        local options=$(echo -e " Refresh Database\n󰿅 Exit\n$packages")
         
         choice=$(echo "$options" | fzf \
             --layout=reverse \
-            --prompt="📦 Select package > " \
-            --height=90% \
-            --preview='bash -c "getPackageInfo \"{}\"" 2>/dev/null' \
-            --preview-window=right:50%:wrap)
+            --prompt=" Select package > " \
+            --height=$height \
+            --exact \
+            --preview='bash -c "getPackageInfo $(printf "%s" "{}")"' \
+            --preview-window=right:60%:wrap)
         
         [[ -z "$choice" ]] && exit 0
         
@@ -127,7 +198,7 @@ displayMenu() {
             *"Refresh Database"*)
                 refreshPackages
                 ;;
-            *"Back"*)
+            *"Exit"*)
                 exit 0
                 ;;
             *)
@@ -139,6 +210,7 @@ displayMenu() {
 
 # Export functions for fzf
 export -f getPackageInfo
+export -f showSystemStats
 export -f togglePackage
 export PACKAGE_INFO
 

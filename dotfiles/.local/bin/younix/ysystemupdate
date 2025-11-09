@@ -23,6 +23,7 @@ showHelp() {
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
+    echo "  -m           Show icon for polybar (updates available or not)"
     echo "  -h           Show this help"
 }
 
@@ -54,7 +55,7 @@ checkAUR() {
         echo "Install Arch User Repository support"
         return
     fi
-    AUR_UPDATES=$(yay -Qua | wc -l)
+    AUR_UPDATES=$(yay -Qua 2>/dev/null | wc -l)
     if [ $AUR_UPDATES -eq 0 ]; then
         echo "No AUR updates available"
     else
@@ -127,13 +128,15 @@ displayMenu(){
 
 OPEN_TERMINAL=false
 SET_STATE=""
+MONITOR_MODE=false
 
-while getopts "thnvs:" opt; do
+while getopts "thnvms:" opt; do
     case $opt in
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;
         v) MUTE_ECHO=true ;;
+        m) MONITOR_MODE=true ;;
         s) SET_STATE="$OPTARG" ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
     esac
@@ -148,6 +151,23 @@ if [ -n "$SET_STATE" ]; then
         snap) runInTerminal updateSnap ;;
         *) echo "Invalid state. Use 'all', 'repo', 'aur', 'flatpak' or 'snap'."; exit 1 ;;
     esac
+    exit 0
+fi
+
+if [ "$MONITOR_MODE" = true ]; then
+    checkRepos > /dev/null
+    checkAUR > /dev/null
+    checkFlatpak > /dev/null
+    checkSnap > /dev/null
+    
+    total_updates=$((REPO_UPDATES + AUR_UPDATES + FLATPAK_UPDATES + SNAP_UPDATES))
+    
+    if [ $total_updates -gt 0 ]; then
+        echo "%{T2}%{T-}"  # Updates available icon
+        notify-send -u normal "System Updates Available" "Repository: $REPO_UPDATES\nAUR: $AUR_UPDATES\nFlatpak: $FLATPAK_UPDATES\nSnap: $SNAP_UPDATES\n\nLeft Click on the icon for update menu\nRight click on the icon for $DISTRO_NAME Software"  -t 0
+    else
+        echo "%{T2}%{T-}"  # No updates, empty output
+    fi
     exit 0
 fi
 

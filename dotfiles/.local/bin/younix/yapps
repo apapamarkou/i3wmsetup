@@ -85,16 +85,18 @@ get_apps() {
 
 # Main launcher with rescan option
 launcher() {
+    height=$(($(tput lines) - 1))
+
     # Add rescan option to menu
     apps_with_rescan=$(echo "  Rescan Applications|rescan|Refresh application list|rescan" && get_apps)
-    
+    yprint -c --color=yellow "$TITLE"
     selected=$(echo "$apps_with_rescan" | fzf \
         --delimiter='|' \
         --with-nth=1 \
         --preview='echo "Application: {1}" && echo "Command: {2}" && echo "" && echo "Description:" && echo "{3}" && echo "" && echo "URL: {4}" && echo "" && echo "Package: {5}"' \
         --preview-window=right:50%:wrap \
         --prompt="  Launch > " \
-        --height=90% \
+        --height=$height \
         --layout=reverse)
     
     if [ -n "$selected" ]; then

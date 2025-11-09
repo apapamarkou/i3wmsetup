@@ -67,23 +67,23 @@ change() {
 displayMenu() {
     while true; do
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
-        yprint -c --color=green "Current: $CURRENT_PROFILE"
-        height=$(($(tput lines) - 2))
-        SELECTED_PROFILE=$(echo "$PROFILES" | \
+        height=$(($(tput lines) - 1))
+        OPTIONS=$(echo -e "$PROFILES\n󰌍 Back")
+        SELECTED_PROFILE=$(echo "$OPTIONS" | \
         fzf --prompt="⚡ > " \
             --header="Current: $CURRENT_PROFILE" \
             --reverse --cycle --select-1 --exit-0 \
             --preview-window=up:1:noborder \
-            --preview="echo '→ $CURRENT_PROFILE is active'" \
             --height=$height)
 
         [ -z "$SELECTED_PROFILE" ] && exit 0
         
-        change $SELECTED_PROFILE
+        case "$SELECTED_PROFILE" in
+            *"Back"*) exit 0 ;;
+            *) change $SELECTED_PROFILE ;;
+        esac
 
     done
-
-
 }
 
 OPEN_TERMINAL=false

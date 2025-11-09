@@ -1,0 +1,167 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# License GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Software Manager
+#
+
+SCRIPT_NAME=$(basename "$0")
+TITLE="Software Manager"
+CONFIG_DIR="$HOME/.config/ysoftware"
+PACKAGE_INFO="$CONFIG_DIR/package.info"
+
+showHelp() {
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
+    echo "Options:"
+    echo "  -r    Refresh package database"
+    echo "  -t    Open in terminal"
+    echo "  -h    Show this help"
+}
+
+openTerminal() {
+    nohup flock -n ~/.config/lock terminal --columns=120 --lines=40 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
+}
+
+refreshPackages() {
+    notify-send "Refreshing package database..."
+    mkdir -p "$CONFIG_DIR"
+    
+    notify-send "Fetching official packages..."
+    pacman -Slq | sed 's/^/[Rep] /' > "$PACKAGE_INFO.tmp"
+    
+    if command -v yay >/dev/null 2>&1; then
+        notify-send "Fetching AUR packages..."
+        yay -Slq --aur | sed 's/^/[AUR] /' >> "$PACKAGE_INFO.tmp"
+    fi
+    
+    mv "$PACKAGE_INFO.tmp" "$PACKAGE_INFO"
+    notify-send "Package database updated!"
+}
+
+getPackageInfo() {
+    local package="$1"
+    
+    # Extract package name
+    package=$(echo "$package" | sed 's/^\[.\] \[...\] //')
+    
+    if [[ "$1" =~ \[AUR\] ]]; then
+        yay -Si "$package" 2>/dev/null || echo "Package information not available"
+    else
+        pacman -Si "$package" 2>/dev/null || echo "Package information not available"
+    fi
+}
+
+togglePackage() {
+    local package="$1"
+    local is_installed=false
+    
+    # Check if package is marked as installed
+    if [[ "$package" =~ ^\[I\] ]]; then
+        is_installed=true
+    fi
+    
+    # Extract package name
+    package=$(echo "$package" | sed 's/^\[.\] \[...\] //')
+    
+    if [[ "$is_installed" == true ]]; then
+        echo "Uninstalling $package..."
+        sudo pacman -R "$package"
+    else
+        echo "Installing $package..."
+        if [[ "$1" =~ \[AUR\] ]]; then
+            yay -S "$package"
+        else
+            sudo pacman -S "$package"
+        fi
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+displayMenu() {
+    # Check if package info exists
+    if [[ ! -f "$PACKAGE_INFO" ]]; then
+        refreshPackages
+    fi
+    
+    while true; do
+        clear
+        yprint -c --color=yellow "YoUNiX $TITLE"
+        
+        # Get installed packages
+        local installed_packages=$(pacman -Q | awk '{print $1}')
+        
+        # Create package list with installation status
+        local packages=$(while read -r line; do
+            package=$(echo "$line" | sed 's/^\[...\] //')
+            if echo "$installed_packages" | grep -q "^$package$"; then
+                echo "[I] $line"
+            else
+                echo "[ ] $line"
+            fi
+        done < "$PACKAGE_INFO")
+        
+        local options=$(echo -e "$packages\n🔄 Refresh Database\n󰌍 Back")
+        
+        choice=$(echo "$options" | fzf \
+            --layout=reverse \
+            --prompt="📦 Select package > " \
+            --height=90% \
+            --preview='bash -c "getPackageInfo \"{}\"" 2>/dev/null' \
+            --preview-window=right:50%:wrap)
+        
+        [[ -z "$choice" ]] && exit 0
+        
+        case "$choice" in
+            *"Refresh Database"*)
+                refreshPackages
+                ;;
+            *"Back"*)
+                exit 0
+                ;;
+            *)
+                togglePackage "$choice"
+                ;;
+        esac
+    done
+}
+
+# Export functions for fzf
+export -f getPackageInfo
+export -f togglePackage
+export PACKAGE_INFO
+
+OPEN_TERMINAL=false
+REFRESH=false
+
+while getopts "rth" opt; do
+    case $opt in
+        r) REFRESH=true ;;
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [[ "$REFRESH" == true ]]; then
+    refreshPackages
+    exit 0
+fi
+
+if [[ "$OPEN_TERMINAL" == true ]]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

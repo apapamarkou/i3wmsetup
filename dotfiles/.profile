@@ -46,3 +46,4 @@ export QT_QPA_FONTDIR=/usr/share/fonts
 export QT_ICON_THEME=Breeze-Dark
 
 # Language Settings
+export LC_COLLATE="el_GR.UTF-8"

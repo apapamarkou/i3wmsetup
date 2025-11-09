@@ -104,7 +104,7 @@ displayMenu() {
 
         yprint -c --color=yellow "Auto-Suspend: $CURRENT_AUTOSUSPEND_TIME"
         height=$(($(tput lines) - 2))
-        choice=$(echo -e " Never\n 5 min\n 15 min\n 30 min\n Back" | fzf --layout=reverse --prompt=" Auto-Suspend > " --height=$height)
+        choice=$(echo -e "  Never\n  5 min\n  15 min\n  30 min\n󰌍  Back" | fzf --layout=reverse --prompt=" Auto-Suspend > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in

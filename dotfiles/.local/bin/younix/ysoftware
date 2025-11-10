@@ -96,6 +96,11 @@ getPackageInfo() {
         showSystemStats
         return
     fi
+
+    if [[ "$1" =~ "Exit" ]]; then
+        echo "Press Enter here to exit..."
+        return
+    fi
     
     package=$(perl -pe 's/^(?:\[[^\]]*\]\s*)+//' <<< "$1")
     

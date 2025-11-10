@@ -1,5 +1,6 @@
 # default applications
 export EDITOR=editor
+export TEXT_EDITOR=micro
 export SHELL_GREETING=fetch
 export VISUAL=/usr/bin/micro
 export BROWSER=firefox

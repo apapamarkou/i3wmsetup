@@ -164,7 +164,7 @@ if [ "$MONITOR_MODE" = true ]; then
     
     if [ $total_updates -gt 0 ]; then
         echo "%{T2}%{T-}"  # Updates available icon
-        notify-send -u normal "System Updates Available" "Repository: $REPO_UPDATES\nAUR: $AUR_UPDATES\nFlatpak: $FLATPAK_UPDATES\nSnap: $SNAP_UPDATES\n\nLeft Click on the icon for update menu\nRight click on the icon for $DISTRO_NAME Software"  -t 0
+        notify-send -u normal "System Updates Available" "Repository: $REPO_UPDATES\nAUR: $AUR_UPDATES\nFlatpak: $FLATPAK_UPDATES\nSnap: $SNAP_UPDATES\n\nUse the  icon in top bar.\nLeft Click for update\nRight click for $DISTRO_NAME Software"  -t 0
     else
         echo "%{T2}%{T-}"  # No updates, empty output
     fi

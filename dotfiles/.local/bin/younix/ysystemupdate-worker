@@ -84,7 +84,7 @@ updateSnap() {
     read -p "Press Enter to continue..."
 }
 
-figlet "$DISTRO_NAME"
+figlet "$DISTRO_NAME  System"
 case $1 in
     InstallYay) InstallYay ;;
     installFlatpak) installFlatpak ;;

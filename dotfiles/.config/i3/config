@@ -8,7 +8,6 @@ font pango:JetBrainsMono Nerd Font normal
 gaps inner 5px
 smart_gaps inverse_outer
 
-default_border pixel 1px
 
 # include all sub-configs
 include conf.d/startup.conf

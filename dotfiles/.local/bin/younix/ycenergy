@@ -33,12 +33,12 @@ open_terminal() {
 display_menu() {
     while true; do
         clear
-        yprint -c --color=yellow "$DISTRO_NAMES $TITLE"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(echo -e "⚡ Power Profiles\n󰤄  Autosuspend\n  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "⚡ Power Profiles\n󰤄  Autosuspend\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in

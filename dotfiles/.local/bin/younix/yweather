@@ -21,7 +21,7 @@ CITIES_FILE="$HOME/.config/yweather/cities.conf"
 VIEW_OPTIONS_FILE="$HOME/.config/yweather/view_options.conf"
 
 showHelp() {
-    echo "YoUNiX $TITLE"
+    echo "$DISTRO_NAME $TITLE"
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
@@ -141,7 +141,7 @@ display_menu() {
         echo "Exit" >> "$tmpfile"
 
         height=$(($(tput lines) - 1))
-        yprint -c --color=yellow "$DISTRO_TITLE $TITLE"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         
         choice=$(cat "$tmpfile" | fzf --prompt="  > " \
             --reverse --cycle --select-1 --exit-0 \

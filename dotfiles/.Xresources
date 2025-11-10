@@ -31,3 +31,6 @@ XTerm*VT100.translations: #override \
 XTerm*selectToClipboard: true
 ! XTerm*metaSendsEscape: true
 ! XTerm*allowSendEvents: true
+
+
+XTerm*loginShell: true

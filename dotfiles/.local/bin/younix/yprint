@@ -15,9 +15,12 @@
 # A print method for youunix
 #
 
+SCRIPT_NAME=$(basename "$0")
+TITLE="A print method for youunix"
+
 showHelp() {
-    echo "yprint - YoUNiX print utility"
-    echo "Usage: yprint [OPTIONS] TEXT"
+    echo "$DISTRO_NAME $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS] TEXT"
     echo "Options:"
     echo "  -c              Center text"
     echo "  -r              Right align text"

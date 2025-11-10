@@ -19,8 +19,8 @@ SCRIPT_NAME=$(basename "$0")
 TITLE="Configure Display"
 
 showHelp() {
-    echo "YoUNiX Configure Display"
-    echo "Usage: ycdisplay [OPTIONS]"
+    echo "$DISTRO_NAME $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
     echo "  -h    Show this help"
@@ -35,14 +35,11 @@ openTerminal() {
 
 displayMenu() {
     while true; do
-        clear
-        yprint -c --color=yellow "YoUNiX $TITTLE"
-        
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
-        choice=$(printf '󰍹  Monitor Configuration\n  Night Light\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);
-        [ -z "$choice" ] && exit 0
-        
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+
+        choice=$(printf '󰍹  Monitor Configuration\n  Night Light\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
             *Monitor*) arandr >/dev/null 2>&1 & ;;
             *Night*) ycnightlight ;;

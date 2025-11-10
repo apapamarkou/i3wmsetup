@@ -34,7 +34,7 @@ openTerminal() {
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX $TITLE"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

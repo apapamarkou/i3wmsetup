@@ -19,3 +19,7 @@ multiplier = 3
 [colors.primary]
 background = "#1D1F21"
 foreground = "#C5C8C6"
+
+[shell]
+program = "/bin/bash"
+args = ["--login"]

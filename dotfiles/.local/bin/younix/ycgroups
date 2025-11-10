@@ -47,7 +47,7 @@ printMessage() {
 }
 
 addGroup() {
-    read -p "Enter new group name: " group_name
+    read -e -p"Enter new group name: " group_name
     if [ -n "$group_name" ]; then
         sudo groupadd "$group_name" 2>/dev/null
         if [ $? -eq 0 ]; then
@@ -75,13 +75,14 @@ removeGroup() {
 displayMenu() {
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX $TITLE"
-        
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+        height=$(($(tput lines) - 1))
+
         # Get all available groups and add management options
         all_groups=$(cut -d: -f1 /etc/group | sort)
         options=$(echo -e "  Add Group\n󰌍  Back\n$all_groups")
         
-        choice=$(echo "$options" | fzf --layout=reverse --prompt="  Select > " --height=50%)
+        choice=$(echo "$options" | fzf --layout=reverse --prompt="  Select > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in

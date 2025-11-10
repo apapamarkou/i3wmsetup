@@ -18,7 +18,7 @@ export APPLICATION_LAUNCHER="yapps -t"
 export CONTROL_PANEL="ycc -t"
 
 # System Variables
-export DISTRO_NAME="YoUNiX"
+export DISTRO_NAME=YoUNiX
 export LOCK_DIR=$HOME/.config/ylock
 export FLOATING_PREFIX=":YoUNiX"
 

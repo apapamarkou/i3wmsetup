@@ -318,6 +318,7 @@ addUser() {
 
 deleteUser() {
     local username="$1"
+    yprint --color=yellow -c "Delete User $username"
     choice=$(echo -e "Approve\nDecline" | fzf --layout=reverse --prompt="Delete user '$username'? " --height=30%)
     
     if [ "$choice" = "Approve" ]; then
@@ -377,16 +378,18 @@ editUserGroups() {
     while true; do
         user_groups=$(groups "$username" 2>/dev/null | cut -d: -f2 | tr ' ' '\n' | grep -v '^$' | sort)
         options=$(echo -e "  Add to a Group\n$user_groups\n󰌍  Back")
-        
-        choice=$(echo "$options" | fzf --layout=reverse --prompt="Groups for $username > " --height=50%)
+        height=$(($(tput lines) - 1))
+
+        choice=$(echo "$options" | fzf --layout=reverse --prompt="Groups for $username > " --height=$height)
         [ -z "$choice" ] && break
         
         case "$choice" in
             *"Add to a Group"*)
                 all_groups=$(cut -d: -f1 /etc/group | sort)
                 available_groups=$(comm -23 <(echo "$all_groups") <(echo "$user_groups"))
-                
-                group=$(echo "$available_groups" | fzf --layout=reverse --prompt="Add $username to group > " --height=50%)
+                height=$(($(tput lines) - 1))
+
+                group=$(echo "$available_groups" | fzf --layout=reverse --prompt="Add $username to group > " --height=$height)
                 if [ -n "$group" ]; then
                     sudo usermod -a -G "$group" "$username"
                     echo "Added $username to group $group"
@@ -411,8 +414,8 @@ displayMenu() {
     while true; do
         clear
         height=$(($(tput lines) - 1))
-        yprint -c --color=yellow "YoUNiX $TITLE"
-        
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+
         # Get all users and add management option
         users=$(awk -F: '$3>=1000 && $3!=65534 {print $1}' /etc/passwd | grep -v '^_' | sort)
         options=$(echo -e "$users\n  Add User\n󰌍  Back")

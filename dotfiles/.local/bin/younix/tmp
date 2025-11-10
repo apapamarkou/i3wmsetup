@@ -1,0 +1,12 @@
+Edit title should load the old title to edit.
+Edit date should load old date to edit.
+Edit tags sould add an fzf to add, remove tags and the format it surrounding with [] comma separated
+Edit content sould open the old content (only not the whole file) in a tmp text file , edit it, and the save it to the md file.
+
+Preview sould show 
+Title: <title>
+Start Date: <date>
+Tags: <tags>
+Content:
+
+and not just cat the md file

@@ -1,0 +1,191 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# License GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Mount Utility
+#
+
+SCRIPT_NAME=$(basename "$0")
+TITLE="Mount Utility"
+
+showHelp() {
+    echo "YoUNiX $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
+    echo "Options:"
+    echo "  -t    Open in terminal"
+    echo "  -h    Show this help"
+}
+
+openTerminal() {
+    nohup flock -n ~/.config/lock terminal --columns=80 --lines=20 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
+}
+
+getPartitionInfo() {
+    local partition="$1"
+    [[ "$partition" =~ (Back|Exit) ]] && return
+    
+    local drive=$(echo "$partition" | sed 's/[0-9]*$//')
+    local size=$(lsblk -dno SIZE "$partition" 2>/dev/null || echo "Unknown")
+    local mountpoint=$(findmnt -n -o TARGET "$partition" 2>/dev/null)
+    local used_space="N/A"
+    local free_space="N/A"
+    
+    if [[ -n "$mountpoint" ]]; then
+        local df_info=$(df -h "$partition" 2>/dev/null | tail -1)
+        used_space=$(echo "$df_info" | awk '{print $3}')
+        free_space=$(echo "$df_info" | awk '{print $4}')
+    else
+        mountpoint="<not set>"
+    fi
+    
+    echo "Drive: $drive"
+    echo "Partition: $partition"
+    echo "Size: $size"
+    echo "Used space: $used_space"
+    echo "Free space: $free_space"
+    echo ""
+    echo "Mount point: $mountpoint"
+}
+
+setMountPoint() {
+    local partition="$1"
+    local label=$(lsblk -no LABEL "$partition" 2>/dev/null)
+    local default_name=$(basename "$partition")
+    
+    [[ -n "$label" ]] && default_name="$label"
+    
+    read -e -p "Enter mount point name: " -i "$default_name" mount_name
+    [[ -n "$mount_name" ]] && {
+        local mount_path="$HOME/Drives/$mount_name"
+        mkdir -p "$mount_path"
+        echo "Mount point set to: $mount_path"
+        read -p "Press Enter to continue..."
+    }
+}
+
+mountPartition() {
+    local partition="$1"
+    local current_mount=$(lsblk -no MOUNTPOINT "$partition" 2>/dev/null)
+    
+    if [[ -n "$current_mount" ]]; then
+        yprint --color=yellow "Unmounting $partition from $current_mount..."
+        sudo umount "$partition"
+        if [[ $? -eq 0 ]]; then
+            yprint --color=green "Successfully unmounted!"
+        else
+            yprint --color=red "Failed to unmount!"
+        fi
+    else
+        local label=$(lsblk -no LABEL "$partition" 2>/dev/null)
+        local default_name=$(basename "$partition")
+        [[ -n "$label" ]] && default_name="$label"
+        
+        local mount_path="$HOME/Drives/$default_name"
+        mkdir -p "$mount_path"
+        
+        yprint --color=yellow "Mounting $partition to $mount_path..."
+        sudo mount "$partition" "$mount_path"
+        if [[ $? -eq 0 ]]; then
+            yprint --color=green "Successfully mounted!"
+        else
+            yprint --color=red "Failed to mount!"
+        fi
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+partitionMenu() {
+    local partition="$1"
+    
+    while true; do
+        clear
+        yprint -c --color=yellow "Partition: $partition"
+        
+        local current_mount=$(lsblk -no MOUNTPOINT "$partition" 2>/dev/null)
+        local mount_text="💾 Mount"
+        local point_text="📁 Set mount point"
+        
+        if [[ -n "$current_mount" ]]; then
+            mount_text="💾 Unmount"
+            point_text="📁 Change mount point"
+        fi
+        
+        choice=$(echo -e "$point_text\n$mount_text\n🔙 Back" | fzf \
+            --layout=reverse \
+            --prompt="💽 Select action > " \
+            --height=50% \
+            --preview="$0 --info '$partition'" \
+            --preview-window=right:60%:wrap)
+        
+        [[ -z "$choice" ]] && break
+        
+        case "$choice" in
+            *"mount point"*) setMountPoint "$partition" ;;
+            *"Mount"*|*"Unmount"*) mountPartition "$partition" ;;
+            *"Back"*) break ;;
+        esac
+    done
+}
+
+displayMenu() {
+    while true; do
+        clear
+        yprint -c --color=yellow "YoUNiX $TITLE"
+        
+        # Get all partitions (excluding loop devices and system partitions)
+        local partitions=$(lsblk -rno NAME,TYPE | awk '$2=="part" {print "/dev/" $1}' | grep -vE '(loop|sr[0-9]|ram[0-9])' | sort)
+        local options=$(echo -e "$partitions\n🚪 Exit")
+        
+        height=$(($(tput lines) - 1))
+        
+        choice=$(echo "$options" | fzf \
+            --layout=reverse \
+            --prompt="💽 Select partition > " \
+            --height=$height \
+            --preview="$0 --info {}" \
+            --preview-window=right:60%:wrap)
+        
+        [[ -z "$choice" ]] && exit 0
+        
+        case "$choice" in
+            *"Exit"*) exit 0 ;;
+            /dev/*) partitionMenu "$choice" ;;
+        esac
+    done
+}
+
+
+
+# Handle --info parameter for fzf preview
+if [[ "$1" == "--info" ]]; then
+    getPartitionInfo "$2"
+    exit 0
+fi
+
+OPEN_TERMINAL=false
+
+while getopts "th" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp; exit 0 ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+if [[ "$OPEN_TERMINAL" == true ]]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

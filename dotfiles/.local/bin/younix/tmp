@@ -1,12 +1,17 @@
-Edit title should load the old title to edit.
-Edit date should load old date to edit.
-Edit tags sould add an fzf to add, remove tags and the format it surrounding with [] comma separated
-Edit content sould open the old content (only not the whole file) in a tmp text file , edit it, and the save it to the md file.
+There should be an ymount utility.
+This should have an fzf showing all available partitions in the system:
+The preview window should show
+Drive:
+Partition:
+Type:
+Size:
+Used space: x GB
+Free space: x GB
 
-Preview sould show 
-Title: <title>
-Start Date: <date>
-Tags: <tags>
-Content:
+Mount point: <not set>  or <$HOME/Drives/xxx>
 
-and not just cat the md file
+Selecting the drive should open an fzf with:
+
+- "Set mount point" if not set or "Change mount point" if set.
+- Mount if not mounted "Unmount" if mounted
+- back

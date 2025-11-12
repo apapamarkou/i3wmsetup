@@ -41,13 +41,14 @@ display_menu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(echo -e "󰚰  Update System\n󱣡  System Malware Shield\n󰿞  Clean Unused Packages\n  Inspect & Free Space\n󰁨  Fix Keyring\n󰌍  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=$height)
+        choice=$(echo -e "󰚰  Update System\n󱣡  System Malware Shield\n󰿞  Clean Unused Packages\n  Inspect & Free Space\n  Boot Options\n󰁨  Fix Keyring\n󰌍  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=$height)
         
         case "$choice" in
             *Update*) ysystemupdate ;;
             *Clean*) runInTerminal clean-orphaned ;;
             *Keyring*) runInTerminal fix-keyring ;;
             *Space*) runInTerminal diskspace ;;
+            *Boot*) ycgrub ;;
             *Malware*) runInTerminal update-shield ;;
             *) break ;;
         esac

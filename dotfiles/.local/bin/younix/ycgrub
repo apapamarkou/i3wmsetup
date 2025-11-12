@@ -6,19 +6,19 @@
 #   | | (_) | |_| | |\  | |/  \ 
 #   |_|\___/ \___/|_| \_|_/_/\_\
 #
-# Lisence GPL3
+# License GPL3
 # Homepage: https://github.com/apapamarkou/younix
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
 #
-# YoUNiX Configure Users and Groups
+# YoUNiX GRUB Menu
 #
 
 SCRIPT_NAME=$(basename "$0")
-TITLE="Users and Groups"
+TITLE="GRUB Management"
 
-show_help() {
+showHelp() {
     echo "$DISTRO_NAME $TITLE"
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
@@ -26,25 +26,34 @@ show_help() {
     echo "  -h    Show this help"
 }
 
-open_terminal() {
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=55 --lines=17 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+openTerminal() {
+    nohup flock -n ~/.config/lock terminal --columns=80 --lines=20 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
 }
 
-display_menu() {
+displayMenu() {
     while true; do
         clear
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
-
-        # relative fzf height by terminal height
+        
         height=$(($(tput lines) - 1))
-
-        choice=$(echo -e "  Users\n  Groups\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
-        [ -z "$choice" ] && exit 0
+        
+        choice=$(echo -e " Install/Reinstall Bootloader\n  Configure Boot\n󰌍 Back" | fzf \
+            --layout=reverse \
+            --prompt="🖥️  Select option > " \
+            --height=$height)
+        
+        [[ -z "$choice" ]] && exit 0
         
         case "$choice" in
-            *Users*) ycusers ;;
-            *Groups*) ycgroups ;;
-            *) exit 0 ;;
+            *"Install/Reinstall Bootloader"*)
+                ycgrubinstall
+                ;;
+            *"Configure Boot"*)
+                ycgrubconfig
+                ;;
+            *"Back"*)
+                exit 0
+                ;;
         esac
     done
 }
@@ -54,14 +63,14 @@ OPEN_TERMINAL=false
 while getopts "th" opt; do
     case $opt in
         t) OPEN_TERMINAL=true ;;
-        h) show_help; exit 0 ;;
+        h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
     esac
 done
 
-if [ "$OPEN_TERMINAL" = true ]; then
-    open_terminal
+if [[ "$OPEN_TERMINAL" == true ]]; then
+    openTerminal
     exit 0
 fi
 
-display_menu
+displayMenu

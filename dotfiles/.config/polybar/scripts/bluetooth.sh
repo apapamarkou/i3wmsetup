@@ -2,14 +2,14 @@
 
 # Έλεγχος αν τρέχει bluetooth service
 if ! systemctl is-active --quiet bluetooth; then
-    echo "No BT"
+    echo ""
     exit 0
 fi
 
 # Έλεγχος αν υπάρχει controller χωρίς να μπλοκάρει
 CONTROLLER=$(timeout 1 bluetoothctl list 2>/dev/null)
 if [ -z "$CONTROLLER" ]; then
-    echo "No BT"
+    echo ""
     exit 0
 fi
 

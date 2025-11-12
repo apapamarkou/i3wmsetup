@@ -89,7 +89,7 @@ launcher() {
 
     # Add rescan option to menu
     apps_with_rescan=$(echo "  Rescan Applications|rescan|Refresh application list|rescan" && get_apps)
-    yprint -c --color=yellow "$TITLE"
+    yprint -c --color=yellow "$DISTRO_NAME $TITLE"
     selected=$(echo "$apps_with_rescan" | fzf \
         --delimiter='|' \
         --with-nth=1 \

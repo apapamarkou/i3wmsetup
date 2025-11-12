@@ -27,8 +27,6 @@ if [[ $confirm =~ ^[Nn]$ ]]; then
     REPO_PACKAGES+='thunar thunar-archive-plugin thunar-media-tags-plugin thunar-vcs-plugin thunar-volman tumbler unzip xarchiver gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd '
 fi
 
-YAY_PACKAGES='aarchup pacseek '
-
 # Confirm install java development
 read -p "Are you a java developer? (Y/n) " confirm
 if [[ ! $confirm =~ ^[Nn]$ ]]; then

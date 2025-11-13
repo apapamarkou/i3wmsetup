@@ -39,7 +39,7 @@ showHelp() {
 }
 
 openTerminal() {
-    nohup flock -n ~/.config/lock terminal --columns=80 --lines=30 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
+    nohup flock -n ~/.config/lock terminal --columns=80 --lines=20 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
 }
 
 loadConfig() {
@@ -59,15 +59,55 @@ MONTHLY_BACKUPS=$MONTHLY_BACKUPS
 EOF
 }
 
+enterPathManually() {
+    
+    while true; do
+        clear
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+        echo
+
+        ERROR_TEXT=""
+        INPUT_PATH=""
+        read -e -p "Enter timemachine destination path: " INPUT_PATH
+
+        # if empty or directory not exist ask for [R]etry or [A]bort
+        if [[ -z "$INPUT_PATH" ]]; then
+            ERROR_TEXT="Path cannot be empty"
+        elif [[ ! -d "$INPUT_PATH" ]]; then
+            ERROR_TEXT="Path does not exist"
+        fi
+        if [[ -n "$ERROR_TEXT" ]]; then
+            echo
+            yprint --color=red "$ERROR_TEXT"
+            echo
+            echo "Press [R] to retry or [A]to abort..."
+            local choice
+            while true; do
+                read -n1 -s choice
+                if [[ "$choice" =~ [Rr] ]]; then
+                    break
+                elif [[ "$choice" =~ [Aa] ]]; then
+                    return
+                fi
+            done
+            
+        fi
+        DESTINATION=$INPUT_PATH
+        return
+    done
+
+}
+
 selectDestination() {
-    local choice=$(echo -e "📁 Browse for folder\n💾 Enter path manually" | fzf --layout=reverse --prompt="Select destination method > " --height=30%)
+    height=$(($(tput lines) - 1))
+    local choice=$(echo -e "  Browse for folder\n  Enter path manually" | fzf --layout=reverse --prompt="Select destination method > " --height=$height)
     
     case "$choice" in
         *"Browse"*)
-            DESTINATION=$(find /mnt /media /home -maxdepth 3 -type d 2>/dev/null | fzf --layout=reverse --prompt="Select backup destination > " --height=50%)
+            DESTINATION=$(find /mnt /media /home -maxdepth 3 -type d 2>/dev/null | fzf --layout=reverse --prompt="Select backup destination > " --height=$height)
             ;;
         *"Enter path"*)
-            read -p "Enter backup destination path: " DESTINATION
+            enterPathManually
             ;;
     esac
     
@@ -77,7 +117,7 @@ selectDestination() {
         DESTINATION="$DESTINATION/$BASE_FOLDER_NAME"
         saveConfig
         yprint --color=green "Destination set to: $DESTINATION"
-        read -p "Press Enter to continue..."
+        sleep 2
     }
 }
 
@@ -105,14 +145,18 @@ createSnapshot() {
     
     # Start progress bar animation
     local frames=(
-        "[    ] 📸 Backing up files... (Press 'A' to abort)"
-        "[=   ] 📸 Backing up files... (Press 'A' to abort)"
-        "[==  ] 📸 Backing up files... (Press 'A' to abort)"
-        "[=== ] 📸 Backing up files... (Press 'A' to abort)"
-        "[====] 📸 Backing up files... (Press 'A' to abort)"
-        "[ ===] 📸 Backing up files... (Press 'A' to abort)"
-        "[  ==] 📸 Backing up files... (Press 'A' to abort)"
-        "[   =] 📸 Backing up files... (Press 'A' to abort)"
+        "[        ]  Backing up files... (Press 'A' to abort)"
+        "[=       ]  Backing up files... (Press 'A' to abort)"
+        "[==      ]  Backing up files... (Press 'A' to abort)"
+        "[===     ]  Backing up files... (Press 'A' to abort)"
+        "[====    ]  Backing up files... (Press 'A' to abort)"
+        "[ ====   ]  Backing up files... (Press 'A' to abort)"
+        "[  ====  ]  Backing up files... (Press 'A' to abort)"
+        "[   ==== ]  Backing up files... (Press 'A' to abort)"
+        "[    ====]  Backing up files... (Press 'A' to abort)"
+        "[     ===]  Backing up files... (Press 'A' to abort)"
+        "[      ==]  Backing up files... (Press 'A' to abort)"
+        "[       =]  Backing up files... (Press 'A' to abort)"
     )
     local i=0
     eval $rsync_cmd &
@@ -124,7 +168,7 @@ createSnapshot() {
         i=$(((i+1) % ${#frames[@]}))
         
         # Check for abort key press
-        read -t 0.2 -n 1 key 2>/dev/null
+        read -t 0.1-n 1 key 2>/dev/null
         if [[ "$key" == "A" || "$key" == "a" ]]; then
             kill $rsync_pid 2>/dev/null
             printf "\r"
@@ -175,7 +219,8 @@ toggleMonthly() {
 }
 
 setDailyCount() {
-    local count=$(seq 1 7 | fzf --layout=reverse --prompt="Select daily backups to keep > " --height=30%)
+    height=$(($(tput lines) - 1))
+    local count=$(seq 1 7 | fzf --layout=reverse --prompt="Select daily backups to keep > " --height=$height)
     [[ -n "$count" ]] && {
         DAILY_BACKUPS=$count
         saveConfig
@@ -183,7 +228,8 @@ setDailyCount() {
 }
 
 setWeeklyCount() {
-    local count=$(seq 1 4 | fzf --layout=reverse --prompt="Select weekly backups to keep > " --height=30%)
+    height=$(($(tput lines) - 1))
+    local count=$(seq 1 4 | fzf --layout=reverse --prompt="Select weekly backups to keep > " --height=$height)
     [[ -n "$count" ]] && {
         WEEKLY_BACKUPS=$count
         saveConfig
@@ -191,7 +237,8 @@ setWeeklyCount() {
 }
 
 setMonthlyCount() {
-    local count=$(seq 1 12 | fzf --layout=reverse --prompt="Select monthly backups to keep > " --height=30%)
+    height=$(($(tput lines) - 1))
+    local count=$(seq 1 12 | fzf --layout=reverse --prompt="Select monthly backups to keep > " --height=$height)
     [[ -n "$count" ]] && {
         MONTHLY_BACKUPS=$count
         saveConfig
@@ -200,7 +247,8 @@ setMonthlyCount() {
 
 restoreSnapshot() {
     local snapshot="$1"
-    local choice=$(echo -e "󰦛  Restore\n󰬅  Cancel" | fzf --layout=reverse --prompt="Restore $snapshot? This will overwrite current system! " --height=30%)
+    height=$(($(tput lines) - 1))
+    local choice=$(echo -e "󰦛  Restore\n󰬅  Cancel" | fzf --layout=reverse --prompt="Restore $snapshot? This will overwrite current system! " --height=$height)
     
     [[ "$choice" =~ "Restore" ]] && {
         yprint --color=red "Restoring snapshot: $snapshot"
@@ -217,7 +265,8 @@ restoreSnapshot() {
 
 deleteSnapshot() {
     local snapshot="$1"
-    local choice=$(echo -e "󰆴  Delete\n󰬅  Cancel" | fzf --layout=reverse --prompt="Delete $snapshot? " --height=30%)
+    height=$(($(tput lines) - 1))
+    local choice=$(echo -e "󰆴  Delete\n󰬅  Cancel" | fzf --layout=reverse --prompt="Delete $snapshot? " --height=$height)
     
     [[ "$choice" =~ "Delete" ]] && {
         # remove with no output
@@ -232,7 +281,8 @@ deleteSnapshot() {
 renameSnapshot() {
     local snapshot="$1"
     local timestamp=$(echo "$snapshot" | cut -d'-' -f1)
-    read -p "Enter new name: " new_name
+    local current_name=$(echo "$snapshot" | cut -d'-' -f2-)
+    read -e -p "Enter new name: " -i "$current_name" new_name
     [[ -n "$new_name" ]] && {
         local new_snapshot="$timestamp-$new_name"
         sudo mv "$DESTINATION/$snapshot" "$DESTINATION/$new_snapshot"
@@ -244,34 +294,34 @@ renameSnapshot() {
 viewSnapshotDetails() {
     local snapshot="$1"
     local snapshot_path="$DESTINATION/$snapshot"
-    
-    echo "Snapshot: $snapshot"
-    echo "Path: $snapshot_path"
-    echo "Size: $(du -sh "$snapshot_path" 2>/dev/null | cut -f1)"
-    echo "Created: $(stat -c %y "$snapshot_path" 2>/dev/null)"
-    echo "Files: $(find "$snapshot_path" -type f 2>/dev/null | wc -l)"
-    
+    echo
+    echo -e "\033[36mSnapshot:\033[0m $snapshot"
+    echo -e "\033[36mPath:\033[0m $snapshot_path"
+    echo -e "\033[36mSize:\033[0m $(du -sh "$snapshot_path" 2>/dev/null | cut -f1)"
+    echo -e "\033[36mCreated:\033[0m $(stat -c %y "$snapshot_path" 2>/dev/null)"
+    echo -e "\033[36mFiles:\033[0m $(find "$snapshot_path" -type f 2>/dev/null | wc -l)"
+    echo
     read -p "Press Enter to continue..."
 }
 
 snapshotMenu() {
     local snapshot="$1"
-    
     while true; do
+        [[ ! -d "$DESTINATION/$snapshot" ]] && return
         clear
         yprint -c --color=yellow "Snapshot: $snapshot"
-        
+        height=$(($(tput lines) - 1))
         choice=$(echo -e "󰦛  Restore This Snapshot\n󰆴  Delete Snapshot\n󰑕  Rename Snapshot\n  View Snapshot Details\n󰌍  Back to Main Menu" | fzf \
             --layout=reverse \
             --prompt="  Select action > " \
-            --height=50%)
+            --height=$height)
         
         [[ -z "$choice" ]] && break
         
         case "$choice" in
             *"Restore"*) restoreSnapshot "$snapshot" ;;
-            *"Delete"*) deleteSnapshot "$snapshot"; break ;;
-            *"Rename"*) renameSnapshot "$snapshot"; break ;;
+            *"Delete"*) deleteSnapshot "$snapshot" ;;
+            *"Rename"*) renameSnapshot "$snapshot" ;;
             *"View"*) viewSnapshotDetails "$snapshot" ;;
             *"Back"*) break ;;
         esac
@@ -282,7 +332,20 @@ displayMenu() {
     loadConfig
     
     while true; do
-        sudo clear
+        # if STARTUP is empty show welcome
+        clear
+        if [[ -z "$STARTUP" ]]; then
+            figlet "Time Machine" | while IFS= read -r line; do
+                printf "%*s\n" $(( ( $(tput cols) + ${#line} ) / 2 )) "$line"
+            done
+            yprint -c --color=yellow "Time machine need elevated privileges"
+            echo
+            echo
+            sudo clear
+            STARTUP="pass"
+        fi
+        
+        
         
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         
@@ -290,8 +353,8 @@ displayMenu() {
         local dest_text="  Select Destination first!"
         [[ -n "$DESTINATION" ]] && dest_text="  Change Destination ($DESTINATION)"
         
-        local daily_text="  Enable Daily Backups"
-        [[ "$DAILY_ENABLED" == true ]] && daily_text="  Disable Daily Backups"
+        local daily_text="󰃭  Enable Daily Backups"
+        [[ "$DAILY_ENABLED" == true ]] && daily_text="󰃭  Disable Daily Backups"
         
         local weekly_text="  Enable Weekly Backups"
         [[ "$WEEKLY_ENABLED" == true ]] && weekly_text="  Disable Weekly Backups"
@@ -300,30 +363,31 @@ displayMenu() {
         [[ "$MONTHLY_ENABLED" == true ]] && monthly_text="󰸗  Disable Monthly Backups"
         
         # Build options
-        local options="$dest_text\n󰈆   Exit"
+        local options="$dest_text\n󰈆  Exit"
         
         if [[ -n "$DESTINATION" ]]; then
             options="󰆓  Create Snapshot\n$dest_text\n$daily_text"
-            [[ "$DAILY_ENABLED" == true ]] && options="$options\n󰏫  Keep $DAILY_BACKUPS Daily Backups"
+            [[ "$DAILY_ENABLED" == true ]] && options="$options\n󰳿  Keep $DAILY_BACKUPS Daily Backups"
             options="$options\n$weekly_text"
-            [[ "$WEEKLY_ENABLED" == true ]] && options="$options\n󰏫  Keep $WEEKLY_BACKUPS Weekly Backups"
+            [[ "$WEEKLY_ENABLED" == true ]] && options="$options\n󰳿  Keep $WEEKLY_BACKUPS Weekly Backups"
             options="$options\n$monthly_text"
-            [[ "$MONTHLY_ENABLED" == true ]] && options="$options\n󰏫  Keep $MONTHLY_BACKUPS Monthly Backups"
+            [[ "$MONTHLY_ENABLED" == true ]] && options="$options\n󰳿  Keep $MONTHLY_BACKUPS Monthly Backups"
             options="$options\n󰈆  Exit"
         fi
         
         # Add snapshots if destination exists
         if [[ -n "$DESTINATION" && -d "$DESTINATION" ]]; then
-            local snapshots=$(ls -1t "$DESTINATION"/ 2>/dev/null | xargs -r -n1 basename)
+            local snapshots=$(ls -1t "$DESTINATION"/ 2>/dev/null | xargs -r -n1 basename | sed $'s/.*/\e[36m&\e[0m/')
+
             [[ -n "$snapshots" ]] && options="$options\n$snapshots"
         fi
         
         height=$(($(tput lines) - 1))
-        
         choice=$(echo -e "$options" | fzf \
+            --ansi \
             --layout=reverse \
             --prompt="  Select option > " \
-            --height=50%)
+            --height=$height)
         
         [[ -z "$choice" ]] && exit 0
         

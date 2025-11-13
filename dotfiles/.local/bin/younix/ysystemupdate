@@ -184,7 +184,7 @@ if [ "$MONITOR_MODE" = true ]; then
         echo "%{T2}%{T-}"  # Updates available icon
         ynotify "System Updates Available" \
                 "Repository: $REPO_UPDATES\nAUR: $AUR_UPDATES\nFlatpak: $FLATPAK_UPDATES\nSnap: $SNAP_UPDATES\n\nUse the   icon in top bar.\nLeft Click to open $DISTRO_NAME update\nRight click to open $DISTRO_NAME Software\n"  \
-                -t 0 \
+                -t 1200 \
                 -l "$SCRIPT_NAME -t"
     else
         echo "%{T2}%{T-}"  # No updates, empty output

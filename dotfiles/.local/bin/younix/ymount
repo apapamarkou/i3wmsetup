@@ -17,9 +17,11 @@
 
 SCRIPT_NAME=$(basename "$0")
 TITLE="Mount Utility"
+CONFIG_DIR="$HOME/.config/ymount"
+CONFIG_FILE="$CONFIG_DIR/mounts.conf"
 
 showHelp() {
-    echo "YoUNiX $TITLE"
+    echo "$DISTRO_NAME $TITLE"
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
@@ -28,6 +30,32 @@ showHelp() {
 
 openTerminal() {
     nohup flock -n ~/.config/lock terminal --columns=80 --lines=20 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME > /dev/null 2>&1 &
+}
+
+loadConfig() {
+    mkdir -p "$CONFIG_DIR"
+    [[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
+}
+
+saveMount() {
+    local partition="$1"
+    local folder_name="$2"
+    local partition_name=$(basename "$partition")
+    
+    mkdir -p "$CONFIG_DIR"
+    
+    # Remove existing entry if present
+    [[ -f "$CONFIG_FILE" ]] && sed -i "/^$partition_name=/d" "$CONFIG_FILE"
+    
+    # Add new entry
+    echo "$partition_name=$folder_name" >> "$CONFIG_FILE"
+}
+
+getMountFolder() {
+    local partition="$1"
+    local partition_name=$(basename "$partition")
+    
+    [[ -f "$CONFIG_FILE" ]] && grep "^$partition_name=" "$CONFIG_FILE" | cut -d'=' -f2
 }
 
 getPartitionInfo() {
@@ -39,13 +67,14 @@ getPartitionInfo() {
     local mountpoint=$(findmnt -n -o TARGET "$partition" 2>/dev/null)
     local used_space="N/A"
     local free_space="N/A"
+    local config_folder=$(getMountFolder "$partition")
     
     if [[ -n "$mountpoint" ]]; then
         local df_info=$(df -h "$partition" 2>/dev/null | tail -1)
         used_space=$(echo "$df_info" | awk '{print $3}')
         free_space=$(echo "$df_info" | awk '{print $4}')
     else
-        mountpoint="<not set>"
+        mountpoint="<not mounted>"
     fi
     
     echo "Drive: $drive"
@@ -55,20 +84,22 @@ getPartitionInfo() {
     echo "Free space: $free_space"
     echo ""
     echo "Mount point: $mountpoint"
+    [[ -n "$config_folder" ]] && echo "Config folder: $config_folder"
 }
 
 setMountPoint() {
     local partition="$1"
+    local current_folder=$(getMountFolder "$partition")
     local label=$(lsblk -no LABEL "$partition" 2>/dev/null)
     local default_name=$(basename "$partition")
     
     [[ -n "$label" ]] && default_name="$label"
+    [[ -n "$current_folder" ]] && default_name="$current_folder"
     
-    read -e -p "Enter mount point name: " -i "$default_name" mount_name
-    [[ -n "$mount_name" ]] && {
-        local mount_path="$HOME/Drives/$mount_name"
-        mkdir -p "$mount_path"
-        echo "Mount point set to: $mount_path"
+    read -e -p "Enter folder name: " -i "$default_name" folder_name
+    [[ -n "$folder_name" ]] && {
+        saveMount "$partition" "$folder_name"
+        yprint --color=green "Mount folder set to: $HOME/Drives/$folder_name"
         read -p "Press Enter to continue..."
     }
 }
@@ -86,11 +117,15 @@ mountPartition() {
             yprint --color=red "Failed to unmount!"
         fi
     else
-        local label=$(lsblk -no LABEL "$partition" 2>/dev/null)
-        local default_name=$(basename "$partition")
-        [[ -n "$label" ]] && default_name="$label"
+        local folder_name=$(getMountFolder "$partition")
         
-        local mount_path="$HOME/Drives/$default_name"
+        if [[ -z "$folder_name" ]]; then
+            yprint --color=red "No mount folder configured. Set mount point first."
+            read -p "Press Enter to continue..."
+            return
+        fi
+        
+        local mount_path="$HOME/Drives/$folder_name"
         mkdir -p "$mount_path"
         
         yprint --color=yellow "Mounting $partition to $mount_path..."
@@ -113,17 +148,17 @@ partitionMenu() {
         yprint -c --color=yellow "Partition: $partition"
         
         local current_mount=$(lsblk -no MOUNTPOINT "$partition" 2>/dev/null)
-        local mount_text="💾 Mount"
-        local point_text="📁 Set mount point"
+        local mount_text="  Mount"
+        local point_text="  Set mount point"
         
         if [[ -n "$current_mount" ]]; then
-            mount_text="💾 Unmount"
-            point_text="📁 Change mount point"
+            mount_text="  Unmount"
+            point_text="  Change mount point"
         fi
         
-        choice=$(echo -e "$point_text\n$mount_text\n🔙 Back" | fzf \
+        choice=$(echo -e "$point_text\n$mount_text\n󰌍  Back" | fzf \
             --layout=reverse \
-            --prompt="💽 Select action > " \
+            --prompt=" Select > " \
             --height=50% \
             --preview="$0 --info '$partition'" \
             --preview-window=right:60%:wrap)
@@ -139,19 +174,21 @@ partitionMenu() {
 }
 
 displayMenu() {
+    loadConfig
+    
     while true; do
         clear
-        yprint -c --color=yellow "YoUNiX $TITLE"
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         
         # Get all partitions (excluding loop devices and system partitions)
         local partitions=$(lsblk -rno NAME,TYPE | awk '$2=="part" {print "/dev/" $1}' | grep -vE '(loop|sr[0-9]|ram[0-9])' | sort)
-        local options=$(echo -e "$partitions\n🚪 Exit")
+        local options=$(echo -e "$partitions\n󰈆  Exit")
         
         height=$(($(tput lines) - 1))
         
         choice=$(echo "$options" | fzf \
             --layout=reverse \
-            --prompt="💽 Select partition > " \
+            --prompt="  Select partition > " \
             --height=$height \
             --preview="$0 --info {}" \
             --preview-window=right:60%:wrap)

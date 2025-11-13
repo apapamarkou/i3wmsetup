@@ -22,6 +22,8 @@
 
 .config/xsettingsd
 
+.config/ylock
+
 .config/yweather/view_options.conf
 
 .config/mimeapps.list

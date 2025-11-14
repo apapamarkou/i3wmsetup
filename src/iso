@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# arch-branding-helper.sh
+# Usage: run inside your build environment (archiso airootfs preferrably)
+
+WORKDIR="$(pwd)/my-arch"
+AIROOT="$WORKDIR/airootfs"
+BRANDING_DIR="$WORKDIR/branding"
+mkdir -p "$AIROOT" "$BRANDING_DIR"
+
+menu() {
+  printf "%s\n" "$@" | fzf --prompt="➤ " --ansi --height=60% --border --cycle
+}
+
+# -------------------------
+# GRUB BRANDING (theme)
+# -------------------------
+grub_theme_create() {
+  read -rp "Theme name (no spaces) [mytheme]: " TNAME
+  TNAME=${TNAME:-mytheme}
+  THEMEDIR="$BRANDING_DIR/grub-theme-$TNAME"
+  mkdir -p "$THEMEDIR"
+
+  # simple theme.conf skeleton
+  cat > "$THEMEDIR/theme.txt" <<'EOF'
+desktop-image: background.png
+title-text: %s
+title-color: #ffffff
+timeout-style: bar
+timeout-color: #00aaff
+EOF
+
+  # placeholder background (small svg/png)
+  cat > "$THEMEDIR/background.svg" <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200">
+  <rect width="100%" height="100%" fill="#111827"/>
+  <text x="50%" y="50%" font-size="40" fill="#00aaff" dominant-baseline="middle" text-anchor="middle">%s</text>
+</svg>
+SVG
+
+  # replace token with distro name (interactive)
+  read -rp "Distro name to show in GRUB ["$TNAME"] : " DIST
+  DIST=${DIST:-$TNAME}
+  sed -i "s/%s/$DIST/g" "$THEMEDIR/theme.txt"
+  sed -i "s/%s/$DIST/g" "$THEMEDIR/background.svg"
+
+  echo -e "\e[32m✔ GRUB theme generated at: $THEMEDIR\e[0m"
+  echo "To include in ISO copy $THEMEDIR to $AIROOT/boot/grub/themes/$TNAME and reference in grub.cfg:"
+  echo "  set theme=/boot/grub/themes/$TNAME/theme.txt"
+}
+
+# -------------------------
+# AUTLOGIN (systemd getty)
+# -------------------------
+enable_autologin() {
+  # choose username
+  read -rp "Target username for autologin (live user) [live]: " USER
+  USER=${USER:-live}
+
+  # make systemd override for getty@tty1
+  OVERDIR="$BRANDING_DIR/systemd-getty-override"
+  mkdir -p "$OVERDIR"
+  cat > "$OVERDIR/override.conf" <<EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
+EOF
+
+  echo -e "\e[32m✔ Autologin override created at: $OVERDIR/override.conf\e[0m"
+  echo "To install in the live image copy this to: $AIROOT/etc/systemd/system/getty@tty1.service.d/override.conf"
+  echo "Or, to enable for installed system, create same file in target root before first boot."
+}
+
+# -------------------------
+# INSTALLER SCRIPT (rsync-based)
+# -------------------------
+generate_installer() {
+  INSTALLER_DIR="$BRANDING_DIR/installer"
+  mkdir -p "$INSTALLER_DIR"
+  cat > "$INSTALLER_DIR/install-to-disk.sh" <<'INSTALL'
+#!/usr/bin/env bash
+set -euo pipefail
+# install-to-disk.sh
+# Usage: sudo ./install-to-disk.sh /dev/sdX
+# WARNING: destructive - will format partitions you choose
+
+if [[ $EUID -ne 0 ]]; then
+  echo "Run as root."
+  exit 1
+fi
+
+TARGET_DEVICE="${1:-}"
+if [[ -z "$TARGET_DEVICE" ]]; then
+  echo "Usage: $0 /dev/sdX"
+  exit 1
+fi
+
+read -p "This will wipe $TARGET_DEVICE. Type DELETE to confirm: " confirm
+if [[ "$confirm" != "DELETE" ]]; then
+  echo "Aborted."
+  exit 1
+fi
+
+# --- Simple partition layout example (EFI + root ext4) ---
+# You can replace with fdisk/parted workflow you prefer.
+parted --script "$TARGET_DEVICE" \
+  mklabel gpt \
+  mkpart primary fat32 1MiB 513MiB \
+  set 1 boot on \
+  mkpart primary ext4 513MiB 100%
+
+EFI_PART="${TARGET_DEVICE}1"
+ROOT_PART="${TARGET_DEVICE}2"
+
+# Format
+mkfs.fat -F32 "$EFI_PART"
+mkfs.ext4 -F "$ROOT_PART"
+
+# Mount
+mkdir -p /mnt/target
+mount "$ROOT_PART" /mnt/target
+mkdir -p /mnt/target/boot/efi
+mount "$EFI_PART" /mnt/target/boot/efi
+
+# Copy prebuilt rootfs (assumes arootfs/ exists next to script)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -d "$SCRIPT_DIR/../airootfs" ]]; then
+  echo "Expected prebuilt airootfs at ../airootfs"
+  exit 1
+fi
+
+# Rsync airootfs to target
+rsync -aHAX --exclude=/dev --exclude=/proc --exclude=/sys --exclude=/tmp --exclude=/run --exclude=/mnt --exclude=/media ../airootfs/ /mnt/target/
+
+# Mount virtual filesystems and chroot to finish setup
+for d in dev proc sys run; do mount --bind /$d /mnt/target/$d; done
+
+# Generate fstab
+genfstab -U /mnt/target > /mnt/target/etc/fstab
+
+# Chroot and finish (create user, install grub)
+arch-chroot /mnt/target /bin/bash -e <<'CHROOT'
+set -e
+# set timezone, locale, hostname - customize as you need
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+hwclock --systohc
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "myhostname" > /etc/hostname
+
+# create live user (if not exists)
+useradd -m -G wheel -s /bin/bash live || true
+echo "live:live" | chpasswd || true
+
+# Install GRUB (assumes EFI)
+pacman --noconfirm -Sy grub efibootmgr --needed
+mkdir -p /boot/efi
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=MYARCH || true
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# enable network and some services as example
+systemctl enable NetworkManager
+CHROOT
+
+# Unmount
+for d in run sys proc dev; do umount /mnt/target/$d || true; done
+umount /mnt/target/boot/efi || true
+umount /mnt/target || true
+
+echo "Installation finished. Reboot when ready."
+INSTALL
+
+  chmod +x "$INSTALLER_DIR/install-to-disk.sh"
+  echo -e "\e[32m✔ Installer script generated: $INSTALLER_DIR/install-to-disk.sh\e[0m"
+  echo "Place airootfs/ next to this script or edit the script path to point to your prebuilt rootfs."
+}
+
+# -------------------------
+# MAIN fzf MENU
+# -------------------------
+while true; do
+  CHOICE=$(menu \
+    "GRUB → Create simple GRUB theme" \
+    "Autologin → Create getty autologin override" \
+    "Installer → Generate rsync-based install script" \
+    "Show branding dir" \
+    "Exit")
+  case "$CHOICE" in
+    "GRUB → Create simple GRUB theme") grub_theme_create ;;
+    "Autologin → Create getty autologin override") enable_autologin ;;
+    "Installer → Generate rsync-based install script") generate_installer ;;
+    "Show branding dir") ls -la "$BRANDING_DIR"; read -rp "Press Enter..." ; ;;
+    *) break ;;
+  esac
+done

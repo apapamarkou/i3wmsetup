@@ -79,7 +79,7 @@ displayMenu() {
             *) currentSize="Unknown" ;;
         esac
 
-        yprint -c "Current border size: $currentSize   (ESC to exit)"
+        yprint -c --color=green "Current border size: $currentSize   (ESC to exit)"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

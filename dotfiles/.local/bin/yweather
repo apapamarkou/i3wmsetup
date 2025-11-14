@@ -128,11 +128,15 @@ preview_city() {
 display_menu() {
     init_cities
     
+    CYAN=$'\e[36m'
+    RESET=$'\e[0m'
+
     while true; do
         tmpfile=$(mktemp)
         
         # Add cities first
-        [[ -f "$CITIES_FILE" ]] && cat "$CITIES_FILE" >> "$tmpfile"
+        [[ -f "$CITIES_FILE" ]] && \
+            sed "s/^/$CYAN/" "$CITIES_FILE" | sed "s/$/$RESET/" >> "$tmpfile"
         
         # Then add menu options
         echo "Add City" >> "$tmpfile"
@@ -145,6 +149,7 @@ display_menu() {
         
         choice=$(cat "$tmpfile" | fzf --prompt="  > " \
             --reverse --cycle --select-1 --exit-0 \
+            --ansi \
             --preview 'bash -c "get_view_option() { [[ -f \"$HOME/.config/yweather/view_options.conf\" ]] && cat \"$HOME/.config/yweather/view_options.conf\" || echo \"?0\"; }; preview_city() { case \"\$1\" in \"Add City\") echo \"Add a new city to your weather list\" ;; \"Remove City\") echo \"Remove a city from your weather list\" ;; \"Viewer Options\") echo \"Change weather display format\" ;; \"Exit\") echo \"Exit the weather viewer\" ;; *) view_opt=\$(get_view_option); curl -s \"wttr.in/\$1\$view_opt\" 2>/dev/null || echo \"Weather data unavailable\" ;; esac }; preview_city {}"' \
             --preview-window=right:125 \
             --height=$height)

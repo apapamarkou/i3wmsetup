@@ -61,7 +61,7 @@ displayMenu() {
         
         # Get current timezone
         current=$(timedatectl show --property=Timezone --value)
-        yprint -c "Current timezone: $current"
+        yprint -c --color=green "Current timezone: $current"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

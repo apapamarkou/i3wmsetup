@@ -90,18 +90,16 @@ getUserInfo() {
     procs=$(ps -u "$username" --no-headers | wc -l)
 
     # Εκτύπωση “κάρτας”
-    cat <<EOF
-User:       $username
-Full Name:  $fullname
-UID/GID:    $uid / $gid
-Home Dir:   $homedir
-Shell:      $shell
-Groups:     $groups
-Last Login: $lastlogin
-Disk Usage: $du_cron
-Cron Jobs:  $cronjobs
-Processes:  $procs
-EOF
+    echo -e "\033[36mUser:\033[0m       $username"
+    echo -e "\033[36mFull Name:\033[0m  $fullname"
+    echo -e "\033[36mUID/GID:\033[0m    $uid / $gid"
+    echo -e "\033[36mHome Dir:\033[0m   $homedir"
+    echo -e "\033[36mShell:\033[0m      $shell"
+    echo -e "\033[36mGroups:\033[0m     $groups"
+    echo -e "\033[36mLast Login:\033[0m $lastlogin"
+    echo -e "\033[36mDisk Usage:\033[0m $du_cron"
+    echo -e "\033[36mCron Jobs:\033[0m  $cronjobs"
+    echo -e "\033[36mProcesses:\033[0m  $procs"
 }
 
 inputKey() {

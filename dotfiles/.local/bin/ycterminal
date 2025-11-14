@@ -37,7 +37,7 @@ displayMenu() {
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
 
         # relative fzf height by terminal height
-        height=$(($(tput lines) - 2))
+        height=$(($(tput lines) - 1))
 
         choice=$(printf '  Default Terminal\n󰗽  Default Shell\n  Back' | fzf --layout=reverse --prompt='  > ' --height=40%);
         case "$choice" in

@@ -75,7 +75,7 @@ displayMenu() {
             *) current_word="Custom ($current_px)" ;;
         esac
         
-        yprint -c "Current setting: $current_word"
+        yprint -c --color=green "Current setting: $current_word"
         
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))

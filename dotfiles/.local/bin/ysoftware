@@ -115,8 +115,6 @@ getPackageInfo() {
     fi
 }
 
-
-
 togglePackage() {
     echo
     text="$DISTRO_NAME  Software"
@@ -152,9 +150,9 @@ togglePackage() {
         yprint --color=green -c "Installing $package from $REPO..."
         echo
         if [[ "$1" =~ \[AUR\] ]]; then
-            yay -S "$package"
+            yay -S --needed "$package"
         else
-            sudo pacman -S "$package"
+            sudo pacman -S --needed "$package"
         fi
     fi
     

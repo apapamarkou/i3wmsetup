@@ -118,7 +118,7 @@ displayMenu() {
         height=$(($(tput lines) - 2))
 
         yprint -c --color=yellow "$DISTRO_NAME Select language"
-        yprint -c "[Enter] to add or remove]"
+        yprint -c --color=cyan "[Enter] to add or remove"
 
         # Select which locale variable to change
         SELECTION=$(printf "%s\n" "${MENU_LIST[@]}" | fzf --prompt="  Select > " --height=$height --layout=reverse)

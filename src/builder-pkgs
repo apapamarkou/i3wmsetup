@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+comm -23 <(pacman -Qqe | sort) <(yay -Qmq | sort) > official_pkglist.txt
+
+pkglist="official_pkglist.txt"
+target="packages.x86_64"
+
+if [[ ! -f "$pkglist" ]]; then
+    echo "Missing $pkglist"
+    exit 1
+fi
+
+if [[ ! -f "$target" ]]; then
+    echo "Missing $target"
+    exit 1
+fi
+
+# Loop through each package
+while read -r pkg; do
+    # Skip empty lines
+    [[ -z "$pkg" ]] && continue
+
+    # Check if package already exists in target
+    if ! grep -qx "$pkg" "$target"; then
+        echo "$pkg" >> "$target"
+        echo "Added: $pkg"
+    fi
+done < "$pkglist"
+
+echo "Done."

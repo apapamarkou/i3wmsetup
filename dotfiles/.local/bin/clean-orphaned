@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Clean Orphaned Packages for YOUNIX desktop environment
+
+figlet "$DISTRO_NAME"
+
+echo -e "\e[33mYou are about to clean unused packages\e[0m"
+echo
+
+sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || echo 'No orphaned packages found'; 
+
+read -p "Press Enter to continue..."

@@ -1,9 +1,0 @@
-#!/bin/bash
-figlet "$DISTRO_NAME Update"
-
-echo -e "\e[33mUpdating System packages...\e[0m"
-echo
-
-sudo pacman -Syu
-
-read -p "Press Enter to continue..."

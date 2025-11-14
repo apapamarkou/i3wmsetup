@@ -1,9 +1,0 @@
-#!/bin/bash
-figlet "$DISTRO_NAME"
-
-echo -e "\e[33mYou are about to clean unused packages\e[0m"
-echo
-
-sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || echo 'No orphaned packages found'; 
-
-read -p "Press Enter to continue..."

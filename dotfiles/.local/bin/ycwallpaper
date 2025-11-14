@@ -1,0 +1,127 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#
+# YoUNiX Wallpaper Picker
+#
+
+SCRIPT_NAME=$(basename "$0")
+TITLE="Wallpaper Picker"
+MUTE_NOTIFY=false
+MUTE_ECHO=false
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+
+showHelp() {
+    echo "$DISTRO_NAME $TITLE"
+    echo "Usage: $SCRIPT_NAME [OPTIONS]"
+    echo "Options:"
+    echo "  -t              Open in terminal"
+    echo "  -n              Mute notification"
+    echo "  -v              Mute console message"
+    echo "  --set=IMAGE     Set wallpaper to specific image"
+    echo "  -h              Show this help"
+    exit 0
+}
+
+checkWallpapersFolder() {
+    if [ -z "$WALLPAPER_DIR" ]; then
+        read -p "Enter wallpaper folder path (leave blank for default): " WALLPAPER_DIR
+        export WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+    fi
+    
+    if [ ! -d "$WALLPAPER_DIR" ]; then
+        read -p "Folder $WALLPAPER_DIR does not exist. Create it? (Y/n): " create_folder
+        case ${create_folder:-Y} in
+            [Yy]*) mkdir -p "$WALLPAPER_DIR" ;;
+            *) exit 1 ;;
+        esac
+    fi
+    cd "$WALLPAPER_DIR" || exit
+}
+
+openTerminal() {
+    local args=""
+    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
+    [ "$MUTE_ECHO" = true ] && args="$args -v"
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=80 --lines=25 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
+    echo "$FLOATING_PREFIX $TITLE"
+}   
+
+printMessage() {
+    if [ "$MUTE_NOTIFY" = false ]; then
+        notify-send "Wallpaper set" "Wallpaper changed to $1."
+    fi
+    if [ "$MUTE_ECHO" = false ]; then
+        echo -e "Wallpaper set\nWallpaper changed to $1."
+    fi
+}
+
+setWallpaper() {
+    local wallpaper_path="$1"
+    if [ -f "$wallpaper_path" ]; then
+        feh --bg-fill "$wallpaper_path"
+        printMessage "$1"
+    else
+        echo "Wallpaper file not found: $wallpaper_path"
+    fi
+}
+
+displayMenu() {
+    if command -v chafa &>/dev/null; then
+        PREVIEW_CMD='chafa --fill=block --size=40x20 {}'
+    elif command -v timg &>/dev/null; then
+        PREVIEW_CMD='timg -g 80x24 {}'
+    else
+        PREVIEW_CMD='echo "! Install chafa ή timg to preview."'
+    fi
+
+    while true; do
+        height=$(($(tput lines) - 1))
+        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+        SELECTED=$(find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) \
+            | sed 's|^\./||' \
+            | fzf --layout=reverse --preview "$PREVIEW_CMD" \
+                --preview-window=right:60%:wrap \
+                --prompt="  > " \
+                --height=$height \
+                --border
+                )
+
+        [ -z "$SELECTED" ] && break
+
+        setWallpaper "$WALLPAPER_DIR/$SELECTED"
+
+        chmod +x "$DEFAULT_SCRIPT"
+    done
+}
+
+OPEN_TERMINAL=false
+
+while getopts "thnv" opt; do
+    case $opt in
+        t) OPEN_TERMINAL=true ;;
+        h) showHelp ;;
+        n) MUTE_NOTIFY=true ;;
+        v) MUTE_ECHO=true ;;
+        \?) echo "Invalid option. Use -h for help."; exit 1 ;;
+    esac
+done
+
+checkWallpapersFolder
+
+if [ "$OPEN_TERMINAL" = true ]; then
+    openTerminal
+    exit 0
+fi
+
+displayMenu

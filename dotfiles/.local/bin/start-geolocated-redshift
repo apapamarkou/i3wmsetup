@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# --- Geolocation Redshift Start Script ---
+
+# 1. Fetch data
+GEODATA=$(curl -s http://ip-api.com/json/?fields=lat,lon)
+
+# 2. Extract values (using jq is cleaner if available, but stick with your original method)
+LATITUDE=$(echo "$GEODATA" | grep -o '"lat":[0-9.-]*' | cut -d: -f2)
+LONGITUDE=$(echo "$GEODATA" | grep -o '"lon":[0-9.-]*' | cut -d: -f2)
+
+# 3. Write variables to a temporary environment file
+echo "export LATITUDE=$LATITUDE" > ~/.location_vars
+echo "export LONGITUDE=$LONGITUDE" >> ~/.location_vars
+
+redshift-gtk -l $LATITUDE:$LONGITUDE

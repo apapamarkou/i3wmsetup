@@ -9,6 +9,7 @@ import uuid
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLineEdit, QGridLayout, QLabel, QScrollArea, QPushButton, QHBoxLayout, QInputDialog, QDialog
 from PyQt6.QtCore import Qt, QMimeData
 from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QPoint
 from PyQt6.QtGui import QPixmap, QDrag
 from PyQt6.QtGui import QCursor
 from PyQt6.QtGui import QIcon
@@ -125,11 +126,32 @@ class AppButton(QWidget):
             return
         if ((event.pos() - self.drag_start_position).manhattanLength() < QApplication.startDragDistance()):
             return
-        
+
         drag = QDrag(self)
         mimeData = QMimeData()
         mimeData.setText(f"item:{self.item_data['id']}")
         drag.setMimeData(mimeData)
+
+        # Provide a visual pixmap for the drag — prefer the current icon pixmap, else create a fallback
+        try:
+            pix = None
+            lbl_pix = self.icon_label.pixmap()
+            if lbl_pix and not lbl_pix.isNull():
+                # use a scaled copy so the drag image isn't too large
+                pix = lbl_pix.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            else:
+                # fall back to generated glyph pixmap
+                first = (self.item_data.get("name") or "?")[0].upper()
+                pix = self._create_fallback_pixmap(48, first)
+
+            if pix:
+                drag.setPixmap(pix)
+                # center hotspot so cursor is centered on the drag image
+                drag.setHotSpot(QPoint(pix.width() // 2, pix.height() // 2))
+        except Exception:
+            # ignore pixmap errors and continue the drag without a visual
+            pass
+
         drag.exec(Qt.DropAction.MoveAction)
     
     def mouseReleaseEvent(self, event):
@@ -143,15 +165,35 @@ class AppButton(QWidget):
     
     def dropEvent(self, event):
         dropped_id = event.mimeData().text().replace("item:", "")
-        if dropped_id != self.item_data['id'] and self.launcher:
-            # If we're in a folder and dropping on an app, remove from folder
-            if self.launcher.in_folder and self.item_data.get('type') != 'folder':
-                self.launcher.remove_from_folder(dropped_id)
-            elif self.item_data.get('type') == 'folder':
-                self.launcher.add_to_folder(self.item_data['id'], dropped_id)
-            else:
-                self.launcher.create_folder(self.item_data['id'], dropped_id)
+        target_id = self.item_data['id']
+        
+        if dropped_id == target_id or not self.launcher:
+            event.ignore()
+            return
+            
+        dropped_item = self.launcher.get_item_by_id(dropped_id)
+        target_item = self.item_data # target_item is self
+        
+        if not dropped_item:
+            event.ignore()
+            return
+
+        # --- Simplified Logic ---
+        
+        # Case 1: Target is a folder. Add to it.
+        if target_item.get('type') == 'folder':
+            # This handles dropping anything onto a folder icon
+            self.launcher.add_to_folder(target_id, dropped_id)
             event.acceptProposedAction()
+        
+        # Case 2: Target is an app, and dropped item is an app. Create folder.
+        elif target_item.get('type') != 'folder' and dropped_item.get('type') != 'folder':
+            self.launcher.create_folder(target_id, dropped_id) # Create folder with target and dropped
+            event.acceptProposedAction()
+        
+        # All other cases (e.g., dropping a folder on an app), do nothing.
+        else:
+            event.ignore()
     
     def launch_item(self):
         if self.item_data.get('type') == 'folder':
@@ -166,10 +208,28 @@ class AppButton(QWidget):
                 pass
             QApplication.quit()
 
+    def _create_fallback_pixmap(self, size=64, text=None):
+        """Return a simple fallback QPixmap with centered text/glyph."""
+        pix = QPixmap(size, size)
+        pix.fill(QColor("#2d2d2d"))
+        painter = QPainter(pix)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QColor("#FFFFFF"))
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(max(10, int(size * 0.5)))
+        painter.setFont(font)
+        if not text:
+            text = "?"
+        painter.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, text)
+        painter.end()
+        return pix
+
 class AppLauncher(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.config_file = os.path.expanduser("~/.config/ylauncher.json")
+        self.config_file = os.path.expanduser("~/.config/ylauncher/detected-apps.json")
+        os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
         self.data = self.load_data()
         # Make sure Qt can find icons in common system/user locations
         try:
@@ -273,6 +333,9 @@ class AppLauncher(QMainWindow):
         
         # Header with title and edit button
         self.header_widget = QWidget()
+        self.header_widget.setAcceptDrops(True) # <--- ADDED
+        self.header_widget.dragEnterEvent = self.header_drag_enter_event # <--- ADDED
+        self.header_widget.dropEvent = self.header_drop_event # <--- ADDED
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
         
@@ -325,21 +388,16 @@ class AppLauncher(QMainWindow):
         
         central_widget.setLayout(main_layout)
         
-    def load_data(self):
-        if os.path.exists(self.config_file):
-            try:
-                with open(self.config_file, 'r') as f:
-                    return json.load(f)
-            except:
-                pass
-        
-        # Build initial data from desktop files
-        data = {"applications": {}, "folders": {}}
-        
+    def _scan_desktop_files(self):
+        """Scans system and user desktop files and returns a list of parsed app_info dicts."""
+        found_apps = []
         desktop_dirs = [
             "/usr/share/applications",
             os.path.expanduser("~/.local/share/applications")
         ]
+        
+        # Use a key (name and exec command) for robust de-duplication across directories
+        seen_keys = set() 
         
         for desktop_dir in desktop_dirs:
             if os.path.exists(desktop_dir):
@@ -348,20 +406,250 @@ class AppLauncher(QMainWindow):
                         if file.endswith('.desktop'):
                             app_info = self.parse_desktop_file(os.path.join(desktop_dir, file))
                             if app_info:
-                                app_id = str(uuid.uuid4())
-                                data["applications"][app_id] = {
-                                    "id": app_id,
-                                    "name": app_info["name"],
-                                    "exec": app_info["exec"],
-                                    "icon": app_info["icon"],
-                                    "icon_name": app_info.get("icon_name"),
-                                    "folderId": None
-                                }
+                                app_key = (app_info["name"], app_info["exec"])
+                                if app_key not in seen_keys:
+                                    found_apps.append(app_info)
+                                    seen_keys.add(app_key)
                 except PermissionError:
                     continue
+        return found_apps
+
+    def _get_max_sort_id(self):
+        """Finds the maximum sortId across all apps and folders in the current data."""
+        max_id = -1
+        # Include both applications and folders to find the global max sort ID
+        all_items = list(self.data.get("applications", {}).values()) + list(self.data.get("folders", {}).values())
+        for item in all_items:
+            sort_id = item.get("sortId")
+            if isinstance(sort_id, int):
+                max_id = max(max_id, sort_id)
+        return max_id
+
+    def _get_max_sort_id(self):
+        """Finds the maximum sortId across all apps and folders in the current data."""
+        max_id = -1
+        all_items = list(self.data.get("applications", {}).values()) + list(self.data.get("folders", {}).values())
+        for item in all_items:
+            sort_id = item.get("sortId")
+            if isinstance(sort_id, int):
+                max_id = max(max_id, sort_id)
+        return max_id
+
+    def discover_new_applications(self):
+        """Scans for new desktop files, identifies removed ones, updates the data, and saves."""
         
-        self.save_data(data)
+        # 1. Get all currently found desktop files on the system
+        found_apps = self._scan_desktop_files()
+        found_app_keys = {(app["name"], app["exec"]) for app in found_apps}
+        
+        # 2. Get all currently managed applications and map their keys (name, exec) to ID
+        managed_apps = self.data["applications"]
+        managed_app_keys = {} # Map (name, exec) -> app_id
+        
+        for app_id, app_data in managed_apps.items():
+            # Only track applications that have an 'exec' command
+            if app_data.get("exec"):
+                managed_app_keys[(app_data["name"], app_data["exec"])] = app_id
+
+        updated = False
+        removed_count = 0
+        
+        # --- REMOVAL LOGIC: Identify and remove deleted applications ---
+        apps_to_remove = []
+        for app_key, app_id in managed_app_keys.items():
+            if app_key not in found_app_keys:
+                # App key is managed but no longer exists on the system
+                apps_to_remove.append((app_id, managed_apps[app_id]['name']))
+
+        for app_id, app_name in apps_to_remove:
+            del managed_apps[app_id]
+            removed_count += 1
+            updated = True
+        
+        if removed_count > 0:
+            print(f"Discovery mode: Removed {removed_count} applications (no corresponding desktop file found).")
+
+        # --- ADDITION LOGIC: Identify and add new applications ---
+        added_count = 0
+        max_sort_id = self._get_max_sort_id()
+        current_sort_id = max_sort_id + 1
+
+        for app_info in found_apps:
+            app_key = (app_info["name"], app_info["exec"])
+            
+            # Check if this app is new (not in the original managed list)
+            if app_key not in managed_app_keys:
+                app_id = str(uuid.uuid4())
+                managed_apps[app_id] = {
+                    "id": app_id,
+                    "name": app_info["name"],
+                    "exec": app_info["exec"],
+                    "icon": app_info["icon"],
+                    "icon_name": app_info.get("icon_name"),
+                    "folderId": None,
+                    "sortId": current_sort_id
+                }
+                current_sort_id += 1
+                added_count += 1
+                updated = True
+                managed_app_keys[app_key] = app_id # Add key to prevent duplicates in current run
+                
+        if added_count > 0:
+            print(f"Discovery mode: Found and added {added_count} new applications.")
+        
+        if updated:
+            self.save_data()
+        else:
+            print("Discovery mode: No changes to applications list.")
+        
+        return updated
+        
+    def load_data(self):
+        data = None
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, 'r') as f:
+                    data = json.load(f)
+            except:
+                pass
+        
+        if data is None:
+            # Build initial data from desktop files on first run
+            data = {"applications": {}, "folders": {}}
+            current_sort_id = 0
+            
+            # Use the new helper to scan for all apps
+            found_apps = self._scan_desktop_files()
+            
+            for app_info in found_apps:
+                app_id = str(uuid.uuid4())
+                data["applications"][app_id] = {
+                    "id": app_id,
+                    "name": app_info["name"],
+                    "exec": app_info["exec"],
+                    "icon": app_info["icon"],
+                    "icon_name": app_info.get("icon_name"),
+                    "folderId": None,
+                    "sortId": current_sort_id
+                }
+                current_sort_id += 1
+        
+        # Ensure sort IDs exist for all items (migration)
+        data, modified = self._ensure_sort_ids(data)
+        if modified:
+            self.save_data(data)
+        
         return data
+    
+    def _ensure_sort_ids(self, data):
+        """Ensures all apps and folders have an integer sortId."""
+        max_id = 0
+        items_without_id = []
+        all_items = list(data.get("applications", {}).values()) + list(data.get("folders", {}).values())
+        modified = False
+        
+        for item in all_items:
+            sort_id = item.get("sortId")
+            if isinstance(sort_id, int):
+                max_id = max(max_id, sort_id)
+            else:
+                items_without_id.append(item)
+                if "sortId" in item or sort_id is None:
+                        modified = True # Mark as modified if key is missing or not an int
+        
+        if items_without_id:
+            modified = True
+            current_id = max_id + 1
+            # Sort by name first to have a predictable initial order for migrated items
+            items_without_id.sort(key=lambda x: x.get("name", "").lower())
+            for item in items_without_id:
+                item["sortId"] = current_id
+                current_id += 1
+        
+        return data, modified
+
+    def get_item_by_id(self, item_id):
+        """Helper to get an item (app or folder) by its ID."""
+        if item_id in self.data["applications"]:
+            return self.data["applications"][item_id]
+        if item_id in self.data["folders"]:
+            return self.data["folders"][item_id]
+        return None
+
+    def reorder_items(self, dragged_id, target_id, placement='before'):
+        """Reorders items based on drag-and-drop, updating sortId."""
+        if dragged_id == target_id:
+            return
+
+        # 1. Get the current list of items in view (unsorted)
+        item_list = []
+        if self.in_folder:
+            folder = self.data["folders"].get(self.current_folder_id)
+            if not folder: return
+            item_list = [self.data["applications"][app_id] for app_id in folder.get("appIds", []) if app_id in self.data["applications"]]
+        else:
+            for app in self.data["applications"].values():
+                if app.get("folderId") is None:
+                    item_list.append(app)
+            for folder in self.data["folders"].values():
+                item_list.append(folder)
+        
+        # 2. Sort the list by current sortId
+        # Use a large fallback for items somehow missing sortId
+        sorted_list = sorted(item_list, key=lambda x: x.get("sortId", 999999))
+        
+        # 3. Find and move the dragged item
+        dragged_item_data = None
+        dragged_index = -1
+        for i, item in enumerate(sorted_list):
+            if item['id'] == dragged_id:
+                dragged_index = i
+                break
+        
+        if dragged_index != -1:
+            dragged_item_data = sorted_list.pop(dragged_index)
+        else:
+            # Dragged item not in current view, (e.g. from search results? - not supported yet)
+            # Or maybe it's an app not in this folder.
+            # Let's check if it's an app being added to the main grid from a folder
+            dragged_item_check = self.get_item_by_id(dragged_id)
+            if dragged_item_check and dragged_item_check.get("folderId"):
+                 # This is an item being dragged out of a folder (e.g. from search)
+                 # but drop target is main grid. Let's handle this as "remove from folder"
+                 # and then re-order.
+                 self.remove_from_folder(dragged_id, refresh=False) # remove without refresh
+                 dragged_item_data = dragged_item_check # Use this item
+            else:
+                 return # Cannot find dragged item in context
+
+        # 4. Find target index
+        target_index = -1
+        for i, item in enumerate(sorted_list):
+            if item['id'] == target_id:
+                target_index = i
+                break
+        
+        if target_index == -1:
+            # Target not found (maybe it was the dragged item?), append to end
+            sorted_list.append(dragged_item_data)
+        else:
+            # Insert *before* or *after* the target
+            if placement == 'after':
+                sorted_list.insert(target_index + 1, dragged_item_data)
+            else: # Default to 'before'
+                sorted_list.insert(target_index, dragged_item_data)
+
+        # 5. Re-assign sortId to all items in the list
+        for i, item_data in enumerate(sorted_list):
+            item_id = item_data["id"]
+            # Get the *actual* item from self.data to modify it
+            real_item = self.get_item_by_id(item_id)
+            if real_item:
+                real_item["sortId"] = i
+        
+        # 6. Save and refresh
+        self.save_data()
+        self.refresh_display()
     
     def parse_desktop_file(self, filepath):
         try:
@@ -480,7 +768,9 @@ class AppLauncher(QMainWindow):
             folder = self.data["folders"][self.current_folder_id]
             self.title_label.setText(folder["name"])
             self.edit_button.show()
-            self.filtered_items = [self.data["applications"][app_id] for app_id in folder["appIds"]]
+            folder_items = [self.data["applications"][app_id] for app_id in folder["appIds"] if app_id in self.data["applications"]]
+            # Sort items in folder by sortId
+            self.filtered_items = sorted(folder_items, key=lambda x: x.get("sortId", 999999))
         else:
             self.title_label.setText("Applications")
             self.edit_button.hide()
@@ -490,8 +780,17 @@ class AppLauncher(QMainWindow):
                 if app["folderId"] is None:
                     items.append(app)
             for folder in self.data["folders"].values():
-                items.append({"id": folder["id"], "name": folder["name"], "type": "folder"})
-            self.filtered_items = sorted(items, key=lambda x: x["name"].lower())
+                # Ensure folders also have a sortId for display
+                if "sortId" not in folder:
+                    folder["sortId"] = 99999 # Fallback, should be handled by _ensure_sort_ids
+                items.append({"id": folder["id"], "name": folder["name"], "type": "folder", "sortId": folder.get("sortId", 999999)})
+            # Sort main grid items by sortId
+            self.filtered_items = sorted(items, key=lambda x: x.get("sortId", 999999))
+        
+        # If search bar is active, filter the sorted list
+        query = self.search_bar.text().lower()
+        if query:
+             self.filtered_items = [item for item in self.filtered_items if query in item["name"].lower()]
         
         self.populate_grid()
     
@@ -551,11 +850,9 @@ class AppLauncher(QMainWindow):
             self.selected_index = index
     
     def filter_items(self):
-        query = self.search_bar.text().lower()
-        if query:
-            self.filtered_items = [item for item in self.filtered_items if query in item["name"].lower()]
-        else:
-            self.refresh_display()
+        # We don't need to re-fetch items, just re-run refresh_display
+        # which will apply the filter to the sorted list
+        self.refresh_display()
         self.selected_index = 0
         self.populate_grid()
     
@@ -563,46 +860,97 @@ class AppLauncher(QMainWindow):
         folder_id = str(uuid.uuid4())
         folder_name = "App Folder"
         
+        # Get the sortId of the first app to place the folder there
+        sort_id = self.data["applications"][app1_id].get("sortId", 999999)
+        
         self.data["folders"][folder_id] = {
             "id": folder_id,
             "name": folder_name,
-            "appIds": [app1_id, app2_id]
+            "appIds": [app1_id, app2_id],
+            "sortId": sort_id # Give folder the sortId of the first app
         }
         
+        # Assign sortIds to apps *within* the folder
         self.data["applications"][app1_id]["folderId"] = folder_id
+        self.data["applications"][app1_id]["sortId"] = 0
         self.data["applications"][app2_id]["folderId"] = folder_id
+        self.data["applications"][app2_id]["sortId"] = 1
         
         self.save_data()
         self.refresh_display()
     
     def add_to_folder(self, folder_id, app_id):
         if folder_id in self.data["folders"] and app_id in self.data["applications"]:
-            self.data["folders"][folder_id]["appIds"].append(app_id)
-            self.data["applications"][app_id]["folderId"] = folder_id
+            folder = self.data["folders"][folder_id]
+            app = self.data["applications"][app_id]
+            
+            # Avoid duplicates
+            if app_id in folder["appIds"]:
+                return
+
+            # Find max sortId inside the folder
+            max_sort_id = -1
+            for child_app_id in folder["appIds"]:
+                child_app = self.data["applications"].get(child_app_id)
+                if child_app:
+                    max_sort_id = max(max_sort_id, child_app.get("sortId", -1))
+
+            folder["appIds"].append(app_id)
+            app["folderId"] = folder_id
+            app["sortId"] = max_sort_id + 1 # Assign next sortId
+            
             self.save_data()
             self.refresh_display()
     
-    def remove_from_folder(self, app_id):
+    def remove_from_folder(self, app_id, refresh=True):
         if app_id in self.data["applications"]:
             app = self.data["applications"][app_id]
             if app["folderId"]:
                 folder_id = app["folderId"]
                 if folder_id in self.data["folders"]:
-                    self.data["folders"][folder_id]["appIds"].remove(app_id)
+                    folder = self.data["folders"][folder_id]
+                    # remove app from folder
+                    if app_id in folder["appIds"]:
+                        folder["appIds"].remove(app_id)
+                    
+                    # Find max sortId on *main grid* to place this app at the end
+                    max_main_sort_id = -1
+                    for item in list(self.data["applications"].values()) + list(self.data["folders"].values()):
+                        if item.get("folderId") is None:
+                             max_main_sort_id = max(max_main_sort_id, item.get("sortId", -1))
+
+                    # clear app's folder reference and assign new main grid sortId
                     app["folderId"] = None
+                    app["sortId"] = max_main_sort_id + 1
+
+                    # if folder is now empty, delete it
+                    if not folder["appIds"]:
+                        try:
+                            del self.data["folders"][folder_id]
+                        except KeyError:
+                            pass
+                        # if we were viewing that folder, return to main view
+                        if self.current_folder_id == folder_id:
+                            self.current_folder_id = None
+                            self.in_folder = False
+                        if self.last_selected_folder_id == folder_id:
+                            self.last_selected_folder_id = None
+                    
                     self.save_data()
-                    self.refresh_display()
+                    if refresh:
+                        self.refresh_display()
     
     def show_folder_contents(self, folder_id):
         self.last_selected_folder_id = folder_id
         self.in_folder = True
         self.current_folder_id = folder_id
+        self.search_bar.clear()
         self.refresh_display()
     
     def edit_folder_name(self):
         if self.current_folder_id:
             # open the editor (parented to launcher), modal and full-screen
-            editor = FolderNameEditor(self.data["folders"][self.current_folder_id]["name"], self)
+            editor = self.FolderNameEditor(self.data["folders"][self.current_folder_id]["name"], self)
             editor.setWindowModality(Qt.WindowModality.ApplicationModal)
             result = editor.exec()
             # schedule a short restore of fullscreen/window state — helps i3 re-tile back to fullscreen
@@ -631,7 +979,10 @@ class AppLauncher(QMainWindow):
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key.Key_Escape:
-            if self.in_folder:
+            if self.search_bar.text():
+                self.search_bar.clear()
+                self.refresh_display()
+            elif self.in_folder:
                 self.in_folder = False
                 self.current_folder_id = None
                 self.refresh_display()
@@ -644,7 +995,8 @@ class AppLauncher(QMainWindow):
             else:
                 self.close()
         elif key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
-            self.launch_selected()
+            if not self.search_bar.hasFocus():
+                self.launch_selected()
         elif key == Qt.Key.Key_Right and self.app_buttons:
             if self.selected_index < len(self.app_buttons) - 1:
                 self.highlight_button(self.selected_index + 1)
@@ -660,8 +1012,11 @@ class AppLauncher(QMainWindow):
             if new_index >= 0:
                 self.highlight_button(new_index)
         elif key == Qt.Key.Key_Tab:
-            self.search_bar.setFocus()
-        elif event.text().isprintable():
+            if self.search_bar.hasFocus():
+                self.setFocus()
+            else:
+                self.search_bar.setFocus()
+        elif not self.search_bar.hasFocus() and event.text().isprintable():
             self.search_bar.setFocus()
             self.search_bar.setText(self.search_bar.text() + event.text())
         else:
@@ -682,7 +1037,10 @@ class AppLauncher(QMainWindow):
 
         if not clicked_interactive:
             # click on empty area
-            if self.in_folder:
+            if self.search_bar.text():
+                self.search_bar.clear()
+                self.refresh_display()
+            elif self.in_folder:
                 # return from folder to main view
                 self.in_folder = False
                 self.current_folder_id = None
@@ -700,112 +1058,142 @@ class AppLauncher(QMainWindow):
         else:
             event.ignore()
 
-    # Drop handler for the empty grid area — dropping there removes an app from the current folder
+    # Drop handler for the empty grid area — this now handles REORDERING
     def grid_drop_event(self, event):
-        if event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
-            dropped_id = event.mimeData().text().replace("item:", "")
-            # If we're viewing a folder, dropping on the empty grid should remove the app from that folder
+        if not (event.mimeData().hasText() and event.mimeData().text().startswith("item:")):
+            event.ignore()
+            return
+            
+        dropped_id = event.mimeData().text().replace("item:", "")
+        
+        # If the grid is empty, we can't reorder.
+        if not self.app_buttons:
+            # If we are in a folder, this must be a "remove from folder" action
             if self.in_folder:
                 self.remove_from_folder(dropped_id)
                 event.acceptProposedAction()
-                return
-        event.ignore()
-    
-class FolderNameEditor(QDialog):
-    def __init__(self, current_name, parent=None):
-        super().__init__(parent)
-        self.current_name = current_name
-        # make this a frameless, application-modal full-screen editor (avoid WindowStaysOnTop which can upset tiling WMs)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
-        self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.showFullScreen()
-        
-        self.setStyleSheet("""
-            QDialog { background-color: #1e1e1e; }
-            QLineEdit { 
-                background-color: #2d2d2d; 
-                color: #ffffff; 
-                border: 2px solid #404040;
-                border-radius: 8px;
-                padding: 20px;
-                font-size: 24px;
-            }
-            QLabel {
-                color: white;
-                font-size: 18px;
-            }
-        """)
-        
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(30)
-        
-        title = QLabel("Edit Folder Name")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 32px; font-weight: bold;")
-        
-        self.name_input = QLineEdit(current_name)
-        self.name_input.setMaximumWidth(600)
-        self.name_input.selectAll()
-        self.name_input.returnPressed.connect(self.accept)
-        
-        instruction = QLabel("Press Enter to save, Escape to cancel")
-        instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        layout.addWidget(title)
-        layout.addWidget(self.name_input, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(instruction)
-        
-        self.setLayout(layout)
-        self.name_input.setFocus()
-    
-    def get_name(self):
-        return self.name_input.text()
-    
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_Escape:
-            self.reject()
-        else:
-            super().keyPressEvent(event)
-    
-    def mousePressEvent(self, event):
-        # Click anywhere that's not the input or title should close the editor (return to folder)
-        widget = QApplication.widgetAt(QCursor.pos())
-        w = widget
-        clicked_input = False
-        while w is not None:
-            if w is self.name_input:
-                clicked_input = True
-                break
-            w = w.parent()
+            else:
+                event.ignore() # Nothing to reorder against
+            return
 
-        if not clicked_input:
-            self.reject()
-        else:
-            super().mousePressEvent(event)
+        drop_pos = event.position()
+        
+        # Find the closest button to the drop position
+        closest_button = None
+        min_dist = float('inf')
+        
+        for button in self.app_buttons:
+            geom = button.geometry()
+            center = geom.center()
+            # FIX: Convert QPoint (center) to QPointF to match event.position() (drop_pos)
+            dist = (center.toPointF() - drop_pos).manhattanLength()
+            
+            if dist < min_dist:
+                min_dist = dist
+                closest_button = button
+        
+        if not closest_button:
+            event.ignore()
+            return
 
-    def _create_fallback_pixmap(self, size=64, text=None):
-        """Return a simple fallback QPixmap with centered text/glyph."""
-        pix = QPixmap(size, size)
-        pix.fill(QColor("#2d2d2d"))
-        painter = QPainter(pix)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QColor("#FFFFFF")
-        painter.setPen(pen)
-        font = QFont()
-        font.setBold(True)
-        # pick a font size relative to the pixmap
-        font.setPointSize(int(size * 0.5))
-        painter.setFont(font)
-        if not text:
-            text = "?"
-        painter.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, text)
-        painter.end()
-        return pix
+        # We found the closest button. Now decide 'before' or 'after'.
+        # We'll use the button's center X coordinate.
+        target_id = closest_button.item_data['id']
+        target_center_x = closest_button.geometry().center().x()
+        drop_x = drop_pos.x()
+        
+        placement = 'after'
+        if drop_x < target_center_x:
+            placement = 'before'
+
+        # If we're in a folder and drop on the grid, we reorder.
+        # This replaces the old "drop on grid to remove" logic.
+        self.reorder_items(dropped_id, target_id, placement)
+        event.acceptProposedAction()
+    
+    # --- ADDED NEW HANDLERS FOR HEADER ---
+    def header_drag_enter_event(self, event):
+        # Only accept drops in folder view (for removing items)
+        if self.in_folder and event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def header_drop_event(self, event):
+        # This is the new "remove from folder" drop zone
+        if self.in_folder and event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
+            dropped_id = event.mimeData().text().replace("item:", "")
+            self.remove_from_folder(dropped_id)
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+    # --- END OF NEW HANDLERS ---
+    
+    class FolderNameEditor(QDialog):
+        def __init__(self, current_name, parent=None):
+            super().__init__(parent)
+            self.setWindowTitle("Edit Folder Name")
+            self.setFixedSize(600, 300)
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog) # Show as a floating dialog
+
+            layout = QVBoxLayout()
+            layout.setSpacing(20)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            title = QLabel("Rename Folder")
+            title.setStyleSheet("font-size: 32px; font-weight: bold;")
+            
+            self.name_input = QLineEdit(current_name)
+            self.name_input.setMaximumWidth(600)
+            self.name_input.selectAll()
+            self.name_input.returnPressed.connect(self.accept)
+            
+            instruction = QLabel("Press Enter to save, Escape to cancel")
+            instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            layout.addWidget(title)
+            layout.addWidget(self.name_input, alignment=Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(instruction)
+            
+            self.setLayout(layout)
+            self.name_input.setFocus()
+        
+        def get_name(self):
+            return self.name_input.text()
+        
+        def keyPressEvent(self, event):
+            if event.key() == Qt.Key.Key_Escape:
+                self.reject()
+            else:
+                super().keyPressEvent(event)
+        
+        def mousePressEvent(self, event):
+            # Click anywhere that's not the input or title should close the editor (return to folder)
+            widget = QApplication.widgetAt(QCursor.pos())
+            w = widget
+            clicked_input = False
+            # Walk up the widget hierarchy to check if the click was on the input field
+            while w is not None:
+                if w is self.name_input:
+                    clicked_input = True
+                    break
+                w = w.parent()
+
+            if not clicked_input:
+                self.reject()
+            else:
+                super().mousePressEvent(event)
 
 if __name__ == "__main__":
-    # create the QApplication before any QWidget
+    is_discovery_mode = "-d" in sys.argv or "--discover" in sys.argv # Check for -d or --discover
+    
     app = QApplication(sys.argv)
     launcher = AppLauncher()
+    
+    if is_discovery_mode:
+        launcher.discover_new_applications()
+        # Exit the application immediately after discovery is complete.
+        sys.exit(0) 
+        
     launcher.show()
     sys.exit(app.exec())

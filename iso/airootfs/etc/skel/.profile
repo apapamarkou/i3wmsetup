@@ -40,8 +40,8 @@ export PATH=$HOME/bin:$PATH
 
 # theme related
 export XDG_CURRENT_DESKTOP="i3"
-export QT_QPA_PLATFORMTHEME=qt6ct
-# export QT_QPA_PLATFORMTHEME=gtk3
+# export QT_QPA_PLATFORMTHEME=qt6ct
+export QT_QPA_PLATFORMTHEME=gtk3
 # export QT_QPA_PLATFORMTHEME=xdgdesktopportal
 export QT_FONT_DPI=96
 export QT_QPA_FONTDIR=/usr/share/fonts

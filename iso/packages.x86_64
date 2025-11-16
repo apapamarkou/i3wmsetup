@@ -119,6 +119,10 @@ wireless_tools
 wpa_supplicant
 wvdial
 xdg-utils
+xorg-server
+xorg-apps
+xorg-xauth
+xorg-xrandr
 xfsprogs
 xl2tpd
 zsh
@@ -222,3 +226,4 @@ xss-lock
 xterm
 zram-generator
 seatd
+pyqt6

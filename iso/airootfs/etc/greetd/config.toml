@@ -2,9 +2,5 @@
 vt = 1
 
 [default_session]
-command = "startx"
-user = "user"
-session_type = "xorg"
-
-[greeter]
 command = "/usr/bin/tuigreet --remember"
+user = "user"

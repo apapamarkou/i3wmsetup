@@ -19,7 +19,7 @@ echo "Installing packages..."
 echo "---------------------"
 echo
 
-REPO_PACKAGES='autotiling alacritty polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship materia-gtk-theme nnn feh mpv unzip man-db man-pages man-pages-el firefox qpwgraph keepassxc mame micro nvim fish zsh figlet bc cmatrix inetutils plocate breeze-icons xettingsd bat '
+REPO_PACKAGES='autotiling alacritty polybar arandr tree alsa-utils pavucontrol brightnessctl dex dunst lxsession jq network-manager-applet networkmanager xfce4-clipman-plugin power-profiles-daemon rofi ttf-jetbrains-mono-nerd calcurse htop btop power-profiles-daemon fzf bluetui dua-cli usbutils maim slop xdotool xorg-xdpyinfo xorg-xwininfo gpick redshift chafa starship materia-gtk-theme nnn feh mpv unzip man-db man-pages man-pages-el firefox qpwgraph keepassxc mame micro nvim fish zsh figlet bc cmatrix inetutils plocate breeze-icons xettingsd bat pyqt6 '
 
 # Confirm
 read -p "Do you need a GUI file manager (thunar)? (Y/n) " confirm

@@ -1,0 +1,579 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import subprocess
+import re
+import json
+import uuid
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLineEdit, QGridLayout, QLabel, QScrollArea, QPushButton, QHBoxLayout, QInputDialog, QDialog
+from PyQt6.QtCore import Qt, QMimeData
+from PyQt6.QtGui import QPixmap, QDrag
+
+class AppButton(QWidget):
+    def __init__(self, item_data, launcher=None):
+        super().__init__()
+        self.item_data = item_data
+        self.launcher = launcher
+        self.launched = False
+        self.setFixedSize(120, 140)
+        self.setAcceptDrops(True)
+        
+        layout = QVBoxLayout()
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(5)
+        
+        # Icon container
+        icon_container = QWidget()
+        icon_container.setFixedHeight(70)
+        icon_layout = QVBoxLayout()
+        icon_layout.setContentsMargins(0, 0, 0, 0)
+        icon_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.icon_label = QLabel()
+        self.icon_label.setFixedSize(64, 64)
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        if item_data.get('type') == 'folder':
+            folder_icon = self.launcher.find_icon("folder") if self.launcher else None
+            if folder_icon and os.path.exists(folder_icon):
+                pixmap = QPixmap(folder_icon).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                self.icon_label.setPixmap(pixmap)
+            else:
+                self.icon_label.setText("📁")
+                self.icon_label.setStyleSheet("font-size: 32px; color: white;")
+        elif item_data.get('icon') and os.path.exists(item_data['icon']):
+            pixmap = QPixmap(item_data['icon']).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            self.icon_label.setPixmap(pixmap)
+        else:
+            self.icon_label.setText("📱")
+            self.icon_label.setStyleSheet("font-size: 32px; color: white;")
+        
+        icon_layout.addWidget(self.icon_label)
+        icon_container.setLayout(icon_layout)
+        
+        # Name label
+        display_name = item_data['name'][:20] + "..." if len(item_data['name']) > 20 else item_data['name']
+        self.name_label = QLabel(display_name)
+        self.name_label.setFixedHeight(50)
+        self.name_label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        self.name_label.setWordWrap(True)
+        self.name_label.setStyleSheet("color: white; font-size: 11px; background: transparent; border: none;")
+        
+        layout.addWidget(icon_container)
+        layout.addWidget(self.name_label)
+        self.setLayout(layout)
+        
+        self.setStyleSheet("""
+            AppButton {
+                background: transparent;
+                border: none;
+                border-radius: 8px;
+            }
+            AppButton:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        """)
+    
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.drag_start_position = event.pos()
+    
+    def mouseMoveEvent(self, event):
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+        if ((event.pos() - self.drag_start_position).manhattanLength() < QApplication.startDragDistance()):
+            return
+        
+        drag = QDrag(self)
+        mimeData = QMimeData()
+        mimeData.setText(f"item:{self.item_data['id']}")
+        drag.setMimeData(mimeData)
+        drag.exec(Qt.DropAction.MoveAction)
+    
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and hasattr(self, 'drag_start_position'):
+            if (event.pos() - self.drag_start_position).manhattanLength() < QApplication.startDragDistance():
+                self.launch_item()
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
+            event.acceptProposedAction()
+    
+    def dropEvent(self, event):
+        dropped_id = event.mimeData().text().replace("item:", "")
+        if dropped_id != self.item_data['id'] and self.launcher:
+            # If we're in a folder and dropping on an app, remove from folder
+            if self.launcher.in_folder and self.item_data.get('type') != 'folder':
+                self.launcher.remove_from_folder(dropped_id)
+            elif self.item_data.get('type') == 'folder':
+                self.launcher.add_to_folder(self.item_data['id'], dropped_id)
+            else:
+                self.launcher.create_folder(self.item_data['id'], dropped_id)
+            event.acceptProposedAction()
+    
+    def launch_item(self):
+        if self.item_data.get('type') == 'folder':
+            self.launcher.show_folder_contents(self.item_data['id'])
+        else:
+            if self.launched:
+                return
+            self.launched = True
+            try:
+                subprocess.Popen(self.item_data['exec'], shell=True)
+            except:
+                pass
+            QApplication.quit()
+
+class AppLauncher(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.config_file = os.path.expanduser("~/.config/ylauncher.json")
+        self.data = self.load_data()
+        self.filtered_items = []
+        self.selected_index = 0
+        self.cols = 8
+        self.app_buttons = []
+        self.in_folder = False
+        self.current_folder_id = None
+        self.last_selected_folder_id = None
+        self.init_ui()
+        self.refresh_display()
+        self.setFocus()
+        
+    def init_ui(self):
+        self.setWindowTitle("Application Launcher")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.showFullScreen()
+        
+        self.setStyleSheet("""
+            QMainWindow { background-color: #1e1e1e; }
+            QLineEdit { 
+                background-color: #2d2d2d; 
+                color: #ffffff; 
+                border: 2px solid #404040;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 18px;
+            }
+            QPushButton {
+                background-color: #404040;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #505050;
+            }
+            QScrollArea {
+                background-color: #1e1e1e;
+                border: none;
+            }
+        """)
+        
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(100, 50, 100, 50)
+        main_layout.setSpacing(30)
+        
+        # Header with title and edit button
+        self.header_widget = QWidget()
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.title_label = QLabel("Applications")
+        self.title_label.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
+        
+        self.edit_button = QPushButton("Edit")
+        self.edit_button.clicked.connect(self.edit_folder_name)
+        self.edit_button.hide()
+        
+        header_layout.addWidget(self.title_label)
+        header_layout.addStretch()
+        header_layout.addWidget(self.edit_button)
+        self.header_widget.setLayout(header_layout)
+        
+        main_layout.addWidget(self.header_widget)
+        
+        # Search bar
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Type to search applications...")
+        self.search_bar.textChanged.connect(self.filter_items)
+        self.search_bar.returnPressed.connect(self.launch_selected)
+        self.search_bar.setMaximumWidth(600)
+        
+        search_widget = QWidget()
+        search_layout = QVBoxLayout()
+        search_layout.addWidget(self.search_bar, alignment=Qt.AlignmentFlag.AlignCenter)
+        search_widget.setLayout(search_layout)
+        
+        main_layout.addWidget(search_widget)
+        
+        # Grid area
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        
+        self.grid_widget = QWidget()
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setSpacing(15)
+        self.grid_widget.setLayout(self.grid_layout)
+        
+        self.scroll_area.setWidget(self.grid_widget)
+        main_layout.addWidget(self.scroll_area)
+        
+        central_widget.setLayout(main_layout)
+        
+    def load_data(self):
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, 'r') as f:
+                    return json.load(f)
+            except:
+                pass
+        
+        # Build initial data from desktop files
+        data = {"applications": {}, "folders": {}}
+        
+        desktop_dirs = [
+            "/usr/share/applications",
+            os.path.expanduser("~/.local/share/applications")
+        ]
+        
+        for desktop_dir in desktop_dirs:
+            if os.path.exists(desktop_dir):
+                try:
+                    for file in os.listdir(desktop_dir):
+                        if file.endswith('.desktop'):
+                            app_info = self.parse_desktop_file(os.path.join(desktop_dir, file))
+                            if app_info:
+                                app_id = str(uuid.uuid4())
+                                data["applications"][app_id] = {
+                                    "id": app_id,
+                                    "name": app_info["name"],
+                                    "exec": app_info["exec"],
+                                    "icon": app_info["icon"],
+                                    "folderId": None
+                                }
+                except PermissionError:
+                    continue
+        
+        self.save_data(data)
+        return data
+    
+    def parse_desktop_file(self, filepath):
+        try:
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                lines = f.readlines()
+            
+            name = None
+            exec_cmd = None
+            icon = None
+            no_display = False
+            
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#') or line.startswith('['):
+                    continue
+                    
+                if '=' not in line:
+                    continue
+                    
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                if key == 'Name' and not name:
+                    name = value
+                elif key == 'Exec' and not exec_cmd:
+                    exec_cmd = value
+                elif key == 'Icon' and not icon:
+                    icon = value
+                elif key == 'NoDisplay':
+                    no_display = value.lower() in ['true', '1', 'yes']
+            
+            if name and exec_cmd and not no_display:
+                exec_cmd = re.sub(r'%[fFuUick]', '', exec_cmd).strip()
+                icon_path = self.find_icon(icon) if icon else None
+                return {'name': name, 'exec': exec_cmd, 'icon': icon_path}
+        except Exception:
+            pass
+        return None
+    
+    def find_icon(self, icon_name):
+        if not icon_name:
+            return None
+            
+        if os.path.isabs(icon_name) and os.path.exists(icon_name):
+            return icon_name
+            
+        icon_dirs = [
+            "/usr/share/icons/hicolor/64x64/apps",
+            "/usr/share/icons/hicolor/48x48/apps",
+            "/usr/share/icons/hicolor/scalable/apps",
+            "/usr/share/pixmaps"
+        ]
+        
+        extensions = [".png", ".svg", ".xpm", ""]
+        
+        for icon_dir in icon_dirs:
+            if os.path.exists(icon_dir):
+                for ext in extensions:
+                    icon_path = os.path.join(icon_dir, icon_name + ext)
+                    if os.path.exists(icon_path):
+                        return icon_path
+        return None
+    
+    def save_data(self, data=None):
+        if data is None:
+            data = self.data
+        try:
+            os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+    
+    def refresh_display(self):
+        if self.in_folder:
+            folder = self.data["folders"][self.current_folder_id]
+            self.title_label.setText(folder["name"])
+            self.edit_button.show()
+            self.filtered_items = [self.data["applications"][app_id] for app_id in folder["appIds"]]
+        else:
+            self.title_label.setText("Applications")
+            self.edit_button.hide()
+            # Show apps not in folders and all folders
+            items = []
+            for app in self.data["applications"].values():
+                if app["folderId"] is None:
+                    items.append(app)
+            for folder in self.data["folders"].values():
+                items.append({"id": folder["id"], "name": folder["name"], "type": "folder"})
+            self.filtered_items = sorted(items, key=lambda x: x["name"].lower())
+        
+        self.populate_grid()
+    
+    def populate_grid(self):
+        for i in reversed(range(self.grid_layout.count())):
+            self.grid_layout.itemAt(i).widget().setParent(None)
+        self.app_buttons = []
+        
+        for i, item in enumerate(self.filtered_items):
+            row = i // self.cols
+            col = i % self.cols
+            
+            app_button = AppButton(item, self)
+            self.grid_layout.addWidget(app_button, row, col)
+            self.app_buttons.append(app_button)
+        
+        if self.app_buttons:
+            self.highlight_button(0)
+    
+    def highlight_button(self, index):
+        for i, btn in enumerate(self.app_buttons):
+            item = self.filtered_items[i]
+            if item.get('type') == 'folder':
+                btn.setStyleSheet("""
+                    QWidget {
+                        background: transparent;
+                        border: 2px solid #888888;
+                        border-radius: 8px;
+                    }
+                    QWidget:hover {
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }
+                """)
+            else:
+                btn.setStyleSheet("""
+                    QWidget {
+                        background: transparent;
+                        border: none;
+                        border-radius: 8px;
+                    }
+                    QWidget:hover {
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }
+                """)
+        
+        if 0 <= index < len(self.app_buttons):
+            self.app_buttons[index].setStyleSheet("""
+                QWidget {
+                    background-color: rgba(128, 128, 128, 0.6);
+                    border: 2px solid #888888;
+                    border-radius: 8px;
+                }
+                QWidget:hover {
+                    background-color: rgba(128, 128, 128, 0.7);
+                }
+            """)
+            self.selected_index = index
+    
+    def filter_items(self):
+        query = self.search_bar.text().lower()
+        if query:
+            self.filtered_items = [item for item in self.filtered_items if query in item["name"].lower()]
+        else:
+            self.refresh_display()
+        self.selected_index = 0
+        self.populate_grid()
+    
+    def create_folder(self, app1_id, app2_id):
+        folder_id = str(uuid.uuid4())
+        folder_name = "App Folder"
+        
+        self.data["folders"][folder_id] = {
+            "id": folder_id,
+            "name": folder_name,
+            "appIds": [app1_id, app2_id]
+        }
+        
+        self.data["applications"][app1_id]["folderId"] = folder_id
+        self.data["applications"][app2_id]["folderId"] = folder_id
+        
+        self.save_data()
+        self.refresh_display()
+    
+    def add_to_folder(self, folder_id, app_id):
+        if folder_id in self.data["folders"] and app_id in self.data["applications"]:
+            self.data["folders"][folder_id]["appIds"].append(app_id)
+            self.data["applications"][app_id]["folderId"] = folder_id
+            self.save_data()
+            self.refresh_display()
+    
+    def remove_from_folder(self, app_id):
+        if app_id in self.data["applications"]:
+            app = self.data["applications"][app_id]
+            if app["folderId"]:
+                folder_id = app["folderId"]
+                if folder_id in self.data["folders"]:
+                    self.data["folders"][folder_id]["appIds"].remove(app_id)
+                    app["folderId"] = None
+                    self.save_data()
+                    self.refresh_display()
+    
+    def show_folder_contents(self, folder_id):
+        self.last_selected_folder_id = folder_id
+        self.in_folder = True
+        self.current_folder_id = folder_id
+        self.refresh_display()
+    
+    def edit_folder_name(self):
+        if self.current_folder_id:
+            editor = FolderNameEditor(self.data["folders"][self.current_folder_id]["name"], self)
+            if editor.exec() == QDialog.DialogCode.Accepted:
+                new_name = editor.get_name()
+                if new_name.strip():
+                    self.data["folders"][self.current_folder_id]["name"] = new_name.strip()
+                    self.save_data()
+                    self.refresh_display()
+    
+    def launch_selected(self):
+        if 0 <= self.selected_index < len(self.app_buttons):
+            self.app_buttons[self.selected_index].launch_item()
+    
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key.Key_Escape:
+            if self.in_folder:
+                self.in_folder = False
+                self.current_folder_id = None
+                self.refresh_display()
+                # Find and select the last opened folder
+                if self.last_selected_folder_id:
+                    for i, item in enumerate(self.filtered_items):
+                        if item.get('id') == self.last_selected_folder_id:
+                            self.highlight_button(i)
+                            break
+            else:
+                self.close()
+        elif key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
+            self.launch_selected()
+        elif key == Qt.Key.Key_Right and self.app_buttons:
+            if self.selected_index < len(self.app_buttons) - 1:
+                self.highlight_button(self.selected_index + 1)
+        elif key == Qt.Key.Key_Left and self.app_buttons:
+            if self.selected_index > 0:
+                self.highlight_button(self.selected_index - 1)
+        elif key == Qt.Key.Key_Down and self.app_buttons:
+            new_index = self.selected_index + self.cols
+            if new_index < len(self.app_buttons):
+                self.highlight_button(new_index)
+        elif key == Qt.Key.Key_Up and self.app_buttons:
+            new_index = self.selected_index - self.cols
+            if new_index >= 0:
+                self.highlight_button(new_index)
+        elif key == Qt.Key.Key_Tab:
+            self.search_bar.setFocus()
+        elif event.text().isprintable():
+            self.search_bar.setFocus()
+            self.search_bar.setText(self.search_bar.text() + event.text())
+        else:
+            super().keyPressEvent(event)
+
+class FolderNameEditor(QDialog):
+    def __init__(self, current_name, parent=None):
+        super().__init__(parent)
+        self.current_name = current_name
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.showFullScreen()
+        
+        self.setStyleSheet("""
+            QDialog { background-color: #1e1e1e; }
+            QLineEdit { 
+                background-color: #2d2d2d; 
+                color: #ffffff; 
+                border: 2px solid #404040;
+                border-radius: 8px;
+                padding: 20px;
+                font-size: 24px;
+            }
+            QLabel {
+                color: white;
+                font-size: 18px;
+            }
+        """)
+        
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setSpacing(30)
+        
+        title = QLabel("Edit Folder Name")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 32px; font-weight: bold;")
+        
+        self.name_input = QLineEdit(current_name)
+        self.name_input.setMaximumWidth(600)
+        self.name_input.selectAll()
+        self.name_input.returnPressed.connect(self.accept)
+        
+        instruction = QLabel("Press Enter to save, Escape to cancel")
+        instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        layout.addWidget(title)
+        layout.addWidget(self.name_input, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(instruction)
+        
+        self.setLayout(layout)
+        self.name_input.setFocus()
+    
+    def get_name(self):
+        return self.name_input.text()
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.reject()
+        else:
+            super().keyPressEvent(event)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    launcher = AppLauncher()
+    launcher.show()
+    sys.exit(app.exec())

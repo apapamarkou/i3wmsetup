@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Screen Recording Script for YOUNIX desktop environment
+
+DIR="$HOME/Videos/ScreenRecords"
+mkdir -p "$DIR"
+FILE="$DIR/record_$(date +%Y-%m-%d_%H-%M-%S).mkv"
+
+MODE=$1
+
+# Default: region recording
+MODE=${MODE:-region}
+
+case "$MODE" in
+    fullscreen)
+        ffmpeg -video_size "$(xdpyinfo | grep dimensions | awk '{print $2}')" -framerate 30 -f x11grab -i :0.0 "$FILE"
+        ;;
+
+    region)
+        # Use slop to select region
+        read X Y W H < <(slop -f "%x %y %w %h")
+        ffmpeg -video_size "${W}x${H}" -framerate 30 -f x11grab -i :0.0+${X},${Y} "$FILE"
+        ;;
+
+    window)
+        WIN_ID=$(xdotool getactivewindow)
+        read X Y W H < <(xwininfo -id $WIN_ID | awk '/Absolute upper-left X:/ {x=$4} /Absolute upper-left Y:/ {y=$4} /Width:/ {w=$2} /Height:/ {h=$2} END {print x, y, w, h}')
+        ffmpeg -video_size "${W}x${H}" -framerate 30 -f x11grab -i :0.0+${X},${Y} "$FILE"
+        ;;
+
+    stop)
+        pkill -SIGINT ffmpeg
+        notify-send "Screen recording stopped"
+        exit 0
+        ;;
+
+    *)
+        echo "Usage: $0 [fullscreen|region|window|stop]"
+        exit 1
+        ;;
+esac
+
+notify-send "Screen recording saved" "$FILE"

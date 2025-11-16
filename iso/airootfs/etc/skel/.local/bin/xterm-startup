@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# Xterm Startup Script for YOUNIX desktop environment
+
+# Define the log file and resource file paths
+LOGFILE="$HOME/i3-autostart.log"
+XRESOURCES="$HOME/.Xresources"
+
+# Log the script start time
+echo "--- $(date) ---" >> "$LOGFILE"
+echo "Script started." >> "$LOGFILE"
+
+# Check if the .Xresources file exists
+if [ -f "$XRESOURCES" ]; then
+    echo ".Xresources file found: $XRESOURCES" >> "$LOGFILE"
+    # Attempt to load the resources
+    xrdb -merge "$XRESOURCES"
+    if [ $? -eq 0 ]; then
+        echo "xrdb -merge succeeded." >> "$LOGFILE"
+    else
+        echo "xrdb -merge FAILED (exit code: $?)." >> "$LOGFILE"
+    fi
+else
+    echo ".Xresources file NOT found at: $XRESOURCES" >> "$LOGFILE"
+fi
+
+echo "Script finished." >> "$LOGFILE"
+
+

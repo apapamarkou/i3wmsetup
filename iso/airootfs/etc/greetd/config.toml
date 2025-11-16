@@ -1,0 +1,8 @@
+[terminal]
+vt = 1
+
+[default_session]
+command = "i3"
+user = "user"
+session_type = "xorg"
+greeter = "tuigreet"

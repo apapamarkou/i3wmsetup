@@ -1,0 +1,36 @@
+! --- Xterm Configuration to mimic Alacritty Settings ---
+! Font and Size
+XTerm*faceName: JetBrainsMonoNL Nerd Font:size=11
+XTerm*faceNameDoublesize: JetBrainsMonoNL Nerd Font:size=11
+XTerm*faceNameBold: JetBrainsMonoNL Nerd Font:style=Bold:size=11
+XTerm*faceNameItalic: JetBrainsMonoNL Nerd Font:style=Italic:size=11
+
+! Colors
+XTerm*background: #1D1F21
+XTerm*foreground: #C5C8C6
+
+! Padding (internal border)
+XTerm*internalBorder: 5
+
+! Scrollback History
+XTerm*saveLines: 10000
+
+! Optional: Cursor style and color for better visibility
+XTerm*cursorColor: #C5C8C6
+XTerm*cursorBlink: true
+
+! Optional: Use the bold font for bold text
+XTerm*boldMode: true
+
+! --- Key Bindings for Copy and Paste ---
+! Bind Ctrl+Shift+C to perform the copy action (select-end(CLIPBOARD))
+XTerm*VT100.translations: #override \
+  Ctrl Shift <KeyPress> C: copy-selection(CLIPBOARD) \n\
+  Ctrl Shift <KeyPress> V: insert-selection(CLIPBOARD)
+
+XTerm*selectToClipboard: true
+! XTerm*metaSendsEscape: true
+! XTerm*allowSendEvents: true
+
+
+XTerm*loginShell: true

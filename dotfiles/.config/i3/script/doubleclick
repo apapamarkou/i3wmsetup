@@ -1,0 +1,28 @@
+#!/bin/bash
+# double_click_toggle.sh
+
+window_id=$(xdotool getwindowfocus)
+timestamp_file="/tmp/last_click_$window_id"
+
+# get window geometry
+eval $(xdotool getwindowgeometry --shell $window_id)
+# X, Y, WIDTH, HEIGHT now available
+
+# get mouse pointer position
+eval $(xdotool getmouselocation --shell)
+# X, Y of pointer now in X, Y
+
+# define titlebar height (adjust to your i3 config)
+title_height=30
+
+# check if click is in titlebar area
+if (( Y >= Y && Y <= Y + title_height )); then
+    # check for double click
+    last=$(cat $timestamp_file 2>/dev/null || echo 0)
+    now=$(date +%s%3N)  # milliseconds
+    echo $now > $timestamp_file
+
+    if (( now - last < 400 )); then
+        i3-msg "[id=$window_id] floating toggle"
+    fi
+fi

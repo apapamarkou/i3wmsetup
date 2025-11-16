@@ -1,4 +1,4 @@
-alsa-utils
+alsa-utils
 amd-ucode
 arch-install-scripts
 archinstall
@@ -34,7 +34,6 @@ fsarchiver
 gpart
 gpm
 gptfdisk
-grml-zsh-config
 grub
 hdparm
 hyperv
@@ -43,13 +42,11 @@ irssi
 iw
 iwd
 jfsutils
-kitty-terminfo
 ldns
 less
 lftp
 libfido2
 libusb-compat
-linux
 linux-atm
 linux-firmware
 linux-firmware-marvell
@@ -94,7 +91,6 @@ qemu-guest-agent
 refind
 reflector
 rsync
-rxvt-unicode-terminfo
 screen
 sdparm
 sequoia-sq
@@ -128,7 +124,6 @@ xl2tpd
 zsh
 
 alacritty
-alsa-utils
 arandr
 archiso
 atool
@@ -143,7 +138,6 @@ breeze-icons
 btop
 calcurse
 chafa
-cockpit
 dex
 dialog
 dmenu
@@ -177,8 +171,6 @@ keepassxc
 libadwaita
 libpulse
 libva-intel-driver
-lightdm
-lightdm-gtk-greeter
 linux-lts
 lxsession
 maim
@@ -220,7 +212,6 @@ xdotool
 xf86-video-amdgpu
 xf86-video-ati
 xf86-video-nouveau
-xfce4-terminal
 xorg-xdpyinfo
 xorg-xev
 xorg-xinit
@@ -230,3 +221,4 @@ xsettingsd
 xss-lock
 xterm
 zram-generator
+seatd

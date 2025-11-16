@@ -1,0 +1,25 @@
+# Normal font
+[font]
+normal = { family = "JetBrainsMonoNL Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMonoNL Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMonoNL Nerd Font", style = "Italic" }
+bold_italic = { family = "JetBrainsMonoNL Nerd Font", style = "Bold Italic" }
+size = 9.0
+builtin_box_drawing = true
+
+[window]
+startup_mode = "Maximized"
+padding = { x = 5, y = 5 }
+dynamic_title = true
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[colors.primary]
+background = "#1D1F21"
+foreground = "#C5C8C6"
+
+[shell]
+program = "/bin/bash"
+args = ["--login"]

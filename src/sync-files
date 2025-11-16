@@ -20,6 +20,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 LIST_FILE="$SCRIPT_DIR/sync-files.txt"
 DEST="$PROJECT_ROOT/dotfiles"
+SKEL="$PROJECT_ROOT/iso/airootfs/etc/skel"
 
 mkdir -p "$DEST"
 
@@ -32,6 +33,9 @@ while IFS= read -r path || [ -n "$path" ]; do
     if [ -e "$SRC" ]; then
         echo "Syncing: $SRC -> $DEST"
         rsync -a --delete --relative "$HOME/./$path" "$DEST"
+        # Αντιγραφή και στο skel
+        echo "Also syncing to skel: $SRC -> $SKEL"
+        sudo rsync -a --delete --relative "$HOME/./$path" "$SKEL"
     else
         echo "⚠️ Missing: $SRC"
     fi

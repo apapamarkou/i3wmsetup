@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "Cleaning pacman DB inside chroot..."
+sudo rm -rf /var/lib/pacman/db.lck
+sudo pacman -Syy
+
+# Καθαρισμός παλιού work/out
+echo "Cleaning previous build directories..."
+sudo rm -rf work/ out/
+
+# Προαιρετικό: καθάρισμα pacman cache
+echo "Cleaning pacman package cache..."
+sudo rm -rf /var/cache/pacman/pkg/*
+
+# Προαιρετικό: καθάρισμα /tmp
+echo "Cleaning /tmp..."
+sudo rm -rf /tmp/*
+
+# Rebuild ISO
+echo "Starting mkarchiso build..."
+sudo mkarchiso -v -w work -o out .
+
+echo "✅ Build complete! ISO is in the 'out' directory."
+
+# clean packagelist (not found package)
+sed -i 's/[^[:print:][:space:]]//g' packages.x86_64

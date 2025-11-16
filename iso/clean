@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+# clean packagelist (not found package)
+sed -i 's/[^[:print:][:space:]]//g' packages.x86_64
+
+echo "Cleaning pacman DB inside chroot..."
+sudo rm -rf /var/lib/pacman/db.lck
+
+# Καθαρισμός παλιού work/out
+echo "Cleaning previous build directories..."
+sudo rm -rf work/ out/
+
+# Προαιρετικό: καθάρισμα pacman cache
+echo "Cleaning pacman package cache..."
+sudo rm -rf /var/cache/pacman/pkg/*
+
+# Προαιρετικό: καθάρισμα /tmp
+echo "Cleaning /tmp..."
+sudo rm -rf /tmp/*
+

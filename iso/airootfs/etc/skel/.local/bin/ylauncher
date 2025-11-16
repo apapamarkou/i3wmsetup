@@ -8,7 +8,12 @@ import json
 import uuid
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLineEdit, QGridLayout, QLabel, QScrollArea, QPushButton, QHBoxLayout, QInputDialog, QDialog
 from PyQt6.QtCore import Qt, QMimeData
+from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QPixmap, QDrag
+from PyQt6.QtGui import QCursor
+from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QPainter, QColor, QFont
+import pathlib
 
 class AppButton(QWidget):
     def __init__(self, item_data, launcher=None):
@@ -35,19 +40,55 @@ class AppButton(QWidget):
         self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         if item_data.get('type') == 'folder':
-            folder_icon = self.launcher.find_icon("folder") if self.launcher else None
-            if folder_icon and os.path.exists(folder_icon):
-                pixmap = QPixmap(folder_icon).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                self.icon_label.setPixmap(pixmap)
+            # prefer theme icon, then fall back to local file, then emoji
+            qicon = QIcon.fromTheme("folder")
+            if not qicon.isNull():
+                pix = qicon.pixmap(64, 64)
+                self.icon_label.setPixmap(pix)
             else:
-                self.icon_label.setText("📁")
-                self.icon_label.setStyleSheet("font-size: 32px; color: white;")
-        elif item_data.get('icon') and os.path.exists(item_data['icon']):
-            pixmap = QPixmap(item_data['icon']).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            self.icon_label.setPixmap(pixmap)
+                folder_icon = self.launcher.find_icon("folder") if self.launcher else None
+                if folder_icon and os.path.exists(folder_icon):
+                    pixmap = QPixmap(folder_icon).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                    self.icon_label.setPixmap(pixmap)
+                else:
+                    # fallback pixmap when folder icon not found
+                    self.icon_label.setPixmap(self._create_fallback_pixmap(64, "📁"))
         else:
-            self.icon_label.setText("📱")
-            self.icon_label.setStyleSheet("font-size: 32px; color: white;")
+            # Prefer an explicit file path first
+            icon_path = item_data.get('icon')
+            icon_name = item_data.get('icon_name')
+            used = False
+            if icon_path and os.path.exists(icon_path):
+                pixmap = QPixmap(icon_path).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                self.icon_label.setPixmap(pixmap)
+                used = True
+            else:
+                # try theme lookup (fromTheme) first — works for theme icons like Adwaita/Breeze
+                if icon_name:
+                    qicon = QIcon.fromTheme(icon_name)
+                    if not qicon.isNull():
+                        pix = qicon.pixmap(64, 64)
+                        self.icon_label.setPixmap(pix)
+                        used = True
+                # fallback to filesystem search using find_icon
+                if not used and icon_name and self.launcher:
+                    resolved = self.launcher.find_icon(icon_name)
+                    if resolved:
+                        pixmap = QPixmap(resolved).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                        self.icon_label.setPixmap(pixmap)
+                        used = True
+                # as a last attempt, try basename from icon_path if present
+                if not used and icon_path and self.launcher:
+                    base = os.path.splitext(os.path.basename(icon_path))[0]
+                    resolved = self.launcher.find_icon(base)
+                    if resolved:
+                        pixmap = QPixmap(resolved).scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                        self.icon_label.setPixmap(pixmap)
+                        used = True
+            if not used:
+                # generic fallback pixmap (uses first letter of app name)
+                first = (item_data.get("name") or "?")[0].upper()
+                self.icon_label.setPixmap(self._create_fallback_pixmap(64, first))
         
         icon_layout.addWidget(self.icon_label)
         icon_container.setLayout(icon_layout)
@@ -130,6 +171,30 @@ class AppLauncher(QMainWindow):
         super().__init__()
         self.config_file = os.path.expanduser("~/.config/ylauncher.json")
         self.data = self.load_data()
+        # Make sure Qt can find icons in common system/user locations
+        try:
+            extra_paths = ["/usr/share/icons", "/usr/share/pixmaps", os.path.expanduser("~/.local/share/icons")]
+            existing = QIcon.themeSearchPaths()
+            # prepend to avoid duplicates
+            for p in extra_paths:
+                if p not in existing and pathlib.Path(p).exists():
+                    existing.append(p)
+            # add any top-level themes under /usr/share/icons (helps find AdwaitaLegacy etc.)
+            icons_root = pathlib.Path("/usr/share/icons")
+            if icons_root.exists():
+                for sub in icons_root.iterdir():
+                    if sub.is_dir() and str(sub) not in existing:
+                        existing.append(str(sub))
+            QIcon.setThemeSearchPaths(existing)
+            # ensure a reasonable theme is selected so QIcon.fromTheme can find icons (hicolor is a safe fallback)
+            try:
+                QIcon.setThemeName("hicolor")
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+        # UI state defaults (must exist before any event handlers run)
         self.filtered_items = []
         self.selected_index = 0
         self.cols = 8
@@ -137,6 +202,31 @@ class AppLauncher(QMainWindow):
         self.in_folder = False
         self.current_folder_id = None
         self.last_selected_folder_id = None
+
+        # Resolve missing icon paths at startup: prefer find_icon(icon_name) then leave icon_name for QIcon.fromTheme fallback
+        updated = False
+        for app_id, app in self.data.get("applications", {}).items():
+            icon_path = app.get("icon")
+            icon_name = app.get("icon_name")
+            if icon_path and os.path.exists(icon_path):
+                continue
+            resolved = None
+            if icon_name:
+                resolved = self.find_icon(icon_name)
+            if not resolved and icon_path:
+                # maybe icon_path was actually an icon basename (with ext or without)
+                base = os.path.splitext(os.path.basename(icon_path))[0]
+                resolved = self.find_icon(base)
+                if not icon_name:
+                    app["icon_name"] = base
+            if resolved:
+                app["icon"] = resolved
+                updated = True
+        if updated:
+            # save resolved paths back to config
+            self.save_data(self.data)
+
+        # Initialize UI regardless of whether we updated icons
         self.init_ui()
         self.refresh_display()
         self.setFocus()
@@ -222,6 +312,11 @@ class AppLauncher(QMainWindow):
         
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout()
+        # allow dropping onto the grid area (e.g. drop to remove from folder)
+        self.grid_widget.setAcceptDrops(True)
+        # bind drag/drop handlers to the grid widget
+        self.grid_widget.dragEnterEvent = self.grid_drag_enter_event
+        self.grid_widget.dropEvent = self.grid_drop_event
         self.grid_layout.setSpacing(15)
         self.grid_widget.setLayout(self.grid_layout)
         
@@ -259,6 +354,7 @@ class AppLauncher(QMainWindow):
                                     "name": app_info["name"],
                                     "exec": app_info["exec"],
                                     "icon": app_info["icon"],
+                                    "icon_name": app_info.get("icon_name"),
                                     "folderId": None
                                 }
                 except PermissionError:
@@ -300,8 +396,9 @@ class AppLauncher(QMainWindow):
             
             if name and exec_cmd and not no_display:
                 exec_cmd = re.sub(r'%[fFuUick]', '', exec_cmd).strip()
+                # preserve original icon name and also try to resolve a filesystem path
                 icon_path = self.find_icon(icon) if icon else None
-                return {'name': name, 'exec': exec_cmd, 'icon': icon_path}
+                return {'name': name, 'exec': exec_cmd, 'icon': icon_path, 'icon_name': icon}
         except Exception:
             pass
         return None
@@ -309,25 +406,63 @@ class AppLauncher(QMainWindow):
     def find_icon(self, icon_name):
         if not icon_name:
             return None
-            
+
+        # If it's already an absolute path
         if os.path.isabs(icon_name) and os.path.exists(icon_name):
             return icon_name
-            
+
+        # normalize
+        icon_base = os.path.splitext(os.path.basename(icon_name))[0].lower()
+
+        # Common extensions to try
+        extensions = [".png", ".svg", ".xpm", ""]
+
+        # Quick check in a few specific directories (keeps original behaviour)
         icon_dirs = [
             "/usr/share/icons/hicolor/64x64/apps",
             "/usr/share/icons/hicolor/48x48/apps",
             "/usr/share/icons/hicolor/scalable/apps",
             "/usr/share/pixmaps"
         ]
-        
-        extensions = [".png", ".svg", ".xpm", ""]
-        
         for icon_dir in icon_dirs:
             if os.path.exists(icon_dir):
                 for ext in extensions:
-                    icon_path = os.path.join(icon_dir, icon_name + ext)
+                    icon_path = os.path.join(icon_dir, icon_base + ext)
                     if os.path.exists(icon_path):
                         return icon_path
+
+        # Broader recursive search in typical icon roots (covers theme subdirs like 128x128/apps, scalable, etc.)
+        search_roots = [
+            "/usr/share/icons",
+            "/usr/share/pixmaps",
+            os.path.expanduser("~/.local/share/icons"),
+            "/usr/share/icons/hicolor"
+        ]
+        for root in search_roots:
+            if not os.path.exists(root):
+                continue
+            for dirpath, dirnames, filenames in os.walk(root):
+                for fname in filenames:
+                    name, ext = os.path.splitext(fname)
+                    lname = name.lower()
+                    if ext.lower() in [".png", ".svg", ".xpm"]:
+                        # exact match (basename or filename)
+                        if fname == icon_name or lname == icon_base:
+                            return os.path.join(dirpath, fname)
+                        # substring / variant matches: pacseek, nm-device-wireless, network-wired, suffixes like "-symbolic"
+                        if icon_base in lname or lname.startswith(icon_base + "-") or lname.endswith("-" + icon_base):
+                            return os.path.join(dirpath, fname)
+
+        # Last resort: try desktop-like icon name with extensions in the pixmaps folder
+        pixmaps = ["/usr/share/pixmaps", os.path.expanduser("~/.local/share/icons")]
+        for pdir in pixmaps:
+            if os.path.exists(pdir):
+                for ext in extensions:
+                    candidate = os.path.join(pdir, icon_base + ext)
+                    if os.path.exists(candidate):
+                        return candidate
+
+        # Not found
         return None
     
     def save_data(self, data=None):
@@ -466,8 +601,23 @@ class AppLauncher(QMainWindow):
     
     def edit_folder_name(self):
         if self.current_folder_id:
+            # open the editor (parented to launcher), modal and full-screen
             editor = FolderNameEditor(self.data["folders"][self.current_folder_id]["name"], self)
-            if editor.exec() == QDialog.DialogCode.Accepted:
+            editor.setWindowModality(Qt.WindowModality.ApplicationModal)
+            result = editor.exec()
+            # schedule a short restore of fullscreen/window state — helps i3 re-tile back to fullscreen
+            def _restore_fullscreen():
+                try:
+                    self.showFullScreen()
+                    # ensure the Qt fullscreen state bit is set
+                    self.setWindowState(self.windowState() | Qt.WindowState.WindowFullScreen)
+                    self.raise_()
+                    self.activateWindow()
+                    self.setFocus()
+                except Exception:
+                    pass
+            QTimer.singleShot(50, _restore_fullscreen)
+            if result == QDialog.DialogCode.Accepted:
                 new_name = editor.get_name()
                 if new_name.strip():
                     self.data["folders"][self.current_folder_id]["name"] = new_name.strip()
@@ -516,12 +666,58 @@ class AppLauncher(QMainWindow):
             self.search_bar.setText(self.search_bar.text() + event.text())
         else:
             super().keyPressEvent(event)
+    
+    def mousePressEvent(self, event):
+        # Determine the widget under the cursor (global-aware)
+        widget = QApplication.widgetAt(QCursor.pos())
 
+        # Walk up parents to see if we clicked an interactive element
+        clicked_interactive = False
+        w = widget
+        while w is not None:
+            if isinstance(w, AppButton) or w is self.title_label or w is self.edit_button or w is self.search_bar:
+                clicked_interactive = True
+                break
+            w = w.parent()
+
+        if not clicked_interactive:
+            # click on empty area
+            if self.in_folder:
+                # return from folder to main view
+                self.in_folder = False
+                self.current_folder_id = None
+                self.refresh_display()
+            else:
+                # in main -> exit
+                self.close()
+        else:
+            super().mousePressEvent(event)
+
+    # Drag enter handler for the empty grid area
+    def grid_drag_enter_event(self, event):
+        if event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    # Drop handler for the empty grid area — dropping there removes an app from the current folder
+    def grid_drop_event(self, event):
+        if event.mimeData().hasText() and event.mimeData().text().startswith("item:"):
+            dropped_id = event.mimeData().text().replace("item:", "")
+            # If we're viewing a folder, dropping on the empty grid should remove the app from that folder
+            if self.in_folder:
+                self.remove_from_folder(dropped_id)
+                event.acceptProposedAction()
+                return
+        event.ignore()
+    
 class FolderNameEditor(QDialog):
     def __init__(self, current_name, parent=None):
         super().__init__(parent)
         self.current_name = current_name
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # make this a frameless, application-modal full-screen editor (avoid WindowStaysOnTop which can upset tiling WMs)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.showFullScreen()
         
         self.setStyleSheet("""
@@ -571,8 +767,44 @@ class FolderNameEditor(QDialog):
             self.reject()
         else:
             super().keyPressEvent(event)
+    
+    def mousePressEvent(self, event):
+        # Click anywhere that's not the input or title should close the editor (return to folder)
+        widget = QApplication.widgetAt(QCursor.pos())
+        w = widget
+        clicked_input = False
+        while w is not None:
+            if w is self.name_input:
+                clicked_input = True
+                break
+            w = w.parent()
 
-if __name__ == '__main__':
+        if not clicked_input:
+            self.reject()
+        else:
+            super().mousePressEvent(event)
+
+    def _create_fallback_pixmap(self, size=64, text=None):
+        """Return a simple fallback QPixmap with centered text/glyph."""
+        pix = QPixmap(size, size)
+        pix.fill(QColor("#2d2d2d"))
+        painter = QPainter(pix)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        pen = QColor("#FFFFFF")
+        painter.setPen(pen)
+        font = QFont()
+        font.setBold(True)
+        # pick a font size relative to the pixmap
+        font.setPointSize(int(size * 0.5))
+        painter.setFont(font)
+        if not text:
+            text = "?"
+        painter.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, text)
+        painter.end()
+        return pix
+
+if __name__ == "__main__":
+    # create the QApplication before any QWidget
     app = QApplication(sys.argv)
     launcher = AppLauncher()
     launcher.show()

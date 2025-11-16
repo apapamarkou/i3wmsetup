@@ -2,7 +2,9 @@
 vt = 1
 
 [default_session]
-command = "i3"
+command = "startx"
 user = "user"
 session_type = "xorg"
-greeter = "tuigreet"
+
+[greeter]
+command = "/usr/bin/tuigreet --remember"

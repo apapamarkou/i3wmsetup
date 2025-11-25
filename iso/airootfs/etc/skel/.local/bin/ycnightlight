@@ -101,7 +101,7 @@ displayMenu() {
     local condition=$(is_running && echo "Nightlight is enabled" || echo "Nightlight is disabled")
     yprint -c --color=green "$condition"
 
-    local choice=$(printf "%s\n󰅕  Start Time: %s\n󰨿  End Time: %s\n󰈆  Exit\n" "$running" "$start_time" "$end_time" | 
+    local choice=$(printf "%s\n󰅕  Start Time: %s\n󰨿  End Time: %s\n$EXIT_TEXT\n" "$running" "$start_time" "$end_time" | 
     fzf --layout=reverse --prompt="  > " --height=$height )
 
     case "$choice" in
@@ -132,9 +132,11 @@ displayMenu() {
 OPEN_TERMINAL=false
 WAYBAR_STATUS=false
 WAYBAR_TOOLTIP=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thmsv" opt; do
+while getopts "ethmsv" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         m) WAYBAR_STATUS=true ;;
         s) WAYBAR_TOOLTIP=true ;;

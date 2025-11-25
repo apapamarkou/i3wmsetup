@@ -37,7 +37,7 @@ displayMenu() {
         
         height=$(($(tput lines) - 1))
         
-        choice=$(echo -e " Install/Reinstall Bootloader\n  Configure Boot\n󰈆  $EXIT_TEXT" | fzf \
+        choice=$(echo -e " Install/Reinstall Bootloader\n  Configure Boot\n$EXIT_TEXT" | fzf \
             --layout=reverse \
             --prompt="  > " \
             --height=$height)
@@ -46,10 +46,10 @@ displayMenu() {
         
         case "$choice" in
             *"Install/Reinstall Bootloader"*)
-                ycgrubinstall
+                ycgrubinstall -e 
                 ;;
             *"Configure Boot"*)
-                ycgrubconfig
+                ycgrubconfig -e 
                 ;;
             *)
                 exit 0
@@ -59,11 +59,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "the" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

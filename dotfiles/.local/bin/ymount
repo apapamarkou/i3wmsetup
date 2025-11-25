@@ -182,7 +182,7 @@ displayMenu() {
         
         # Get all partitions (excluding loop devices and system partitions)
         local partitions=$(lsblk -rno NAME,TYPE | awk '$2=="part" {print "/dev/" $1}' | grep -vE '(loop|sr[0-9]|ram[0-9])' | sort)
-        local options=$(echo -e "$partitions\n󰈆  Exit")
+        local options=$(echo -e "$partitions\n$EXIT_TEXT")
         
         height=$(($(tput lines) - 1))
         
@@ -196,7 +196,7 @@ displayMenu() {
         [[ -z "$choice" ]] && exit 0
         
         case "$choice" in
-            *"Exit"*) exit 0 ;;
+            *"$EXIT_TEXT"*) exit 0 ;;
             /dev/*) partitionMenu "$choice" ;;
         esac
     done
@@ -211,9 +211,11 @@ if [[ "$1" == "--info" ]]; then
 fi
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "eth" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

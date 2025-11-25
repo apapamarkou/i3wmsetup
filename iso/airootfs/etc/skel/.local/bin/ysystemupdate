@@ -121,7 +121,7 @@ displayMenu(){
     OPTION_C="C) $aur_text"
     OPTION_D="D) $flatpak_text"
     OPTION_E="E) $snap_text"
-    OPTION_F="F) No Thanks"
+    OPTION_F="$EXIT_TEXT"
 
     options=("$OPTION_A" "$OPTION_B" "$OPTION_C" "$OPTION_D" "$OPTION_E" "$OPTION_F")
     while true; do
@@ -139,7 +139,7 @@ displayMenu(){
             *"Install flatpak"*) runInTerminal installFlatpak ;;
             *"snap packages"*) runInTerminal updateSnap ;;
             *"Install Snap"*) runInTerminal installSnap ;;
-            *"No Thanks"*) break ;;
+            *"$EXIT_TEXT"*) break ;;
         esac
     done
 }
@@ -147,9 +147,11 @@ displayMenu(){
 OPEN_TERMINAL=false
 SET_STATE=""
 MONITOR_MODE=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvms:" opt; do
+while getopts "ethnvms:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;

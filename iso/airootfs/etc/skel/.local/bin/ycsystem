@@ -41,14 +41,14 @@ display_menu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(echo -e "󰚰  Update System\n󱣡  System Malware Shield\n󰿞  Clean Unused Packages\n  Inspect & Free Space\n  Boot Options\n󰁨  Fix Keyring\n󰌍  Back" | fzf --layout=reverse --prompt="  Maintenance > " --height=$height)
+        choice=$(echo -e "󰚰  Update System\n󱣡  System Malware Shield\n󰿞  Clean Unused Packages\n  Inspect & Free Space\n  Boot Options\n󰁨  Fix Keyring\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  Maintenance > " --height=$height)
         
         case "$choice" in
-            *Update*) ysystemupdate ;;
+            *Update*) ysystemupdate -e;;
             *Clean*) runInTerminal clean-orphaned ;;
             *Keyring*) runInTerminal fix-keyring ;;
             *Space*) runInTerminal diskspace ;;
-            *Boot*) ycgrub ;;
+            *Boot*) ycgrub -e;;
             *Malware*) runInTerminal update-shield ;;
             *) break ;;
         esac
@@ -56,9 +56,11 @@ display_menu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "eth" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) show_help; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

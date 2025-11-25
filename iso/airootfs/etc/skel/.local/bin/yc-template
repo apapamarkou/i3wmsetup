@@ -38,7 +38,7 @@ displayMenu() {
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         echo "fzf Menu implementation goes here"
         height=$(($(tput lines) - 1))
-        choice=$(echo -e "   option 1\n   option 2\n󰌍 Back" | fzf \
+        choice=$(echo -e "   option 1\n   option 2\n$EXIT_TEX" | fzf \
                 --ansi \
                 --layout=reverse \
                 --prompt="  > " \
@@ -52,9 +52,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnv" opt; do
+while getopts "the" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

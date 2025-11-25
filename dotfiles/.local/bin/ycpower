@@ -38,7 +38,7 @@ display_menu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt=' System > ' --height=40%);
+        choice=$(printf "  Lock\n󰗽  Logout\n  Reboot\n⏻  Poweroff\n$EXIT_TEXT" | fzf --layout=reverse --prompt='  > ' --height=40%);
         
         case "$choice" in
             *Lock*) hyprlock ;;
@@ -51,9 +51,11 @@ display_menu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "eth" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) show_help; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

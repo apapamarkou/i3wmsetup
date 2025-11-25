@@ -58,9 +58,10 @@ displayMenu() {
         current=$(pactl info | grep "Default Source" | awk -F': ' '{print $2}')
         yprint -c --color=green "$current"
         
-        selection=$(echo "$sources" | fzf --prompt="  > " --height=$height --layout=reverse)
+        selection=$(printf "$sources\n$EXIT_TEXT" | fzf --prompt="  > " --height=$height --layout=reverse)
         # Exit if nothing selected
         [[ -z "$selection" ]] && exit 0
+        [[ "$selection" = "$EXIT_TEXT" ]] && exit 0
         # Extract source name
         source_name=$(echo "$selection" | awk -F'|' '{print $2}' | xargs)
         # Set default source
@@ -71,9 +72,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_STATE=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnv:" opt; do
+while getopts "ethnv:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;

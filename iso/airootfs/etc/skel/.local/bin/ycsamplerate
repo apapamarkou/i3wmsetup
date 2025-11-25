@@ -93,8 +93,9 @@ displayMenu() {
         yprint -c --color=green "Current samplerate: $current_rate"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-        choice=$(echo -e "44100\n48000\n88200\n96000\n176400\n192000" | fzf --layout=reverse --height=$height --prompt="  > ")
+        choice=$(echo -e "44100\n48000\n88200\n96000\n176400\n192000\n$EXIT_TEXT" | fzf --layout=reverse --height=$height --prompt="  > ")
         [ -z "$choice" ] && exit 0
+        [ "$choice" = "$EXIT_TEXT" ] && exit 0
         change "$choice"
         printMessage "$choice"
     done
@@ -102,9 +103,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_TERMINAL=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvs:" opt; do
+while getopts "ethnvs:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         n) MUTE_NOTIFY=true ;;

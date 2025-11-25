@@ -67,11 +67,11 @@ change() {
 displayMenu() {
     while true; do
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
-        height=$(($(tput lines) - 1))
-        OPTIONS=$(echo -e "$PROFILES\n󰌍 Back")
+        yprint -c --color=green "Current profile $CURRENT_PROFILE"
+        height=$(($(tput lines) - 2))
+        OPTIONS=$(echo -e "$PROFILES\n$EXIT_TEXT")
         SELECTED_PROFILE=$(echo "$OPTIONS" | \
         fzf --prompt="⚡ > " \
-            --header="Current: $CURRENT_PROFILE" \
             --reverse --cycle --select-1 --exit-0 \
             --preview-window=up:1:noborder \
             --height=$height)
@@ -79,7 +79,7 @@ displayMenu() {
         [ -z "$SELECTED_PROFILE" ] && exit 0
         
         case "$SELECTED_PROFILE" in
-            *"Back"*) exit 0 ;;
+            "$EXIT_TEXT") exit 0 ;;
             *) change $SELECTED_PROFILE ;;
         esac
 
@@ -88,9 +88,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_MONITOR=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvs:" opt; do
+while getopts "ethnvs:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;

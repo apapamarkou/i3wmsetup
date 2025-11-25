@@ -66,7 +66,7 @@ displayMenu() {
         # print current
         yprint -c --color=green "Current: $SYSTEM_MONITOR"
         
-        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "󰍹  top\n󰷜  htop\n󰨇  btop\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *htop*) change htop ;;
             *btop*) change btop ;;
@@ -78,9 +78,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_MONITOR=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvs:" opt; do
+while getopts "ethnvs:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;

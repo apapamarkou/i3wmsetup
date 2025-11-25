@@ -64,7 +64,7 @@ displayMenu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
 
-        choice=$(sort "$tmpfile" | fzf --prompt="  > " --height=$height --layout=reverse --with-nth=1,2,3)
+        choice=$(sort "$tmpfile" | fzf --prompt=" [ESC] to exit  > " --height=$height --layout=reverse --with-nth=1,2,3)
         rm -f "$tmpfile"
 
         [[ -z "$choice" ]] && exit 0
@@ -94,9 +94,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "the" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

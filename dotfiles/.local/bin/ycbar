@@ -157,7 +157,7 @@ displayMenu() {
         height=$(($(tput lines) - 1))
         
         # Pass the combined list to fzf
-        choice=$(echo -e "$menu_list󰌍 Back" | fzf --ansi --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "$menu_list$EXIT_TEXT" | fzf --ansi --layout=reverse --prompt="  > " --height=$height)
 
         case "$choice" in
             "Enable"*)
@@ -174,9 +174,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "the" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         *) exit 1 ;;

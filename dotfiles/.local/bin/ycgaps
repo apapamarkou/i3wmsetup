@@ -20,13 +20,12 @@ MUTE_ECHO=false
 SCRIPT_NAME=$(basename "$0")
 TITLE="Configure Hyprland window gaps"
 
+Tight=2
+Separated=5
+Loose=10
+
 # --- Hyprland Specific Variables ---
 HYPRLAND_CONFIG_FILE="$HOME/.config/hypr/look.conf"
-# This function is a placeholder for yprint, which likely isn't available
-yprint() {
-    echo "$@"
-}
-# -----------------------------------
 
 showHelp() {
     echo "$TITLE"
@@ -39,8 +38,9 @@ showHelp() {
     echo "  -v           Suppress console message"
 }
 
-# The openTerminal function is skipped as it relies on specific environment variables (LOCK_DIR, FLOATING_PREFIX)
-# and a 'terminal' command that isn't universally defined, making a direct Hyprland port complex without more context.
+openTerminal() {
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=61 --lines=18 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+}
 
 printMessage() {
     if [ "$MUTE_NOTIFY" = false ]; then
@@ -58,15 +58,15 @@ change() {
 
     case "$set_name" in
         tight)
-            gap_in_size=2
+            gap_in_size=$Tight
             gap_out_size=4
             ;;
         separated)
-            gap_in_size=5
+            gap_in_size=$Separated
             gap_out_size=10
             ;;
         loose)
-            gap_in_size=10
+            gap_in_size=$Loose
             gap_out_size=20
             ;;
         *)
@@ -110,9 +110,9 @@ get_current_gap() {
     current_px=${current_px:-0} # Default to 0 if no value is found
 
     case "$current_px" in
-        0) echo "Tight (no gaps)" ;;
-        5) echo "Separated (small gaps)" ;;
-        15) echo "Loose (large gaps)" ;;
+        $Tight) echo "Tight (no gaps)" ;;
+        $Separated) echo "Separated (small gaps)" ;;
+        $Loose) echo "Loose (large gaps)" ;;
         *) echo "Custom ($current_px)" ;;
     esac
 }
@@ -132,7 +132,7 @@ displayMenu() {
         
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-        choice=$(echo -e "󰎦  Tight (gaps: 0)\n󰎩  Separated (gaps: 5)\n󰎬  Loose (gaps: 15)\n󰈆  $EXIT_TEXT" | fzf --layout=reverse --prompt="  Gaps > " --height=$height)
+        choice=$(echo -e "󰎦  Tight\n󰎩  Separated\n󰎬  Loose\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  Gaps > " --height=$height)
         
         case "$choice" in
             *Tight*) change tight ;;
@@ -146,15 +146,12 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET=""
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "thnvse" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
-        t) 
-            echo "-t (Open in terminal) is not implemented in the Hyprland conversion." 
-            # OPEN_TERMINAL=true # Keep flag if future implementation is desired
-            ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
+        t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;
         v) MUTE_ECHO=true ;;
@@ -169,8 +166,7 @@ if [ -n "$SET" ]; then
 fi
 
 if [ "$OPEN_TERMINAL" = true ]; then
-    # if you want to implement the terminal open logic later, do it here
-    # openTerminal
+    openTerminal
     exit 0
 fi
 

@@ -69,7 +69,7 @@ displayMenu() {
         yprint -c --color=green "Current default shell: $current"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-        choice=$(echo -e "  bash\n  zsh\n  fish\n󰈆  $EXIT_TEXT" | fzf --layout=reverse --height=$height --prompt="  Shell: ")
+        choice=$(echo -e "  bash\n  zsh\n  fish\n$EXIT_TEXT" | fzf --layout=reverse --height=$height --prompt="  Shell: ")
         case $choice in
             *bash*) change bash ;;
             *zsh*) change zsh;;
@@ -81,11 +81,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_SHELL=""
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvse:" opt; do
+while getopts "ethnvs:" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         n) MUTE_NOTIFY=true ;;

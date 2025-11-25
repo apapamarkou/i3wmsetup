@@ -39,22 +39,24 @@ displayMenu() {
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
-        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰕳  Top bar modules\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height )
+        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰕳  Top bar modules\n󱁐  Gaps\n  Window Borders\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  > " --height=$height )
         case $choice in
             *Wallpaper*) ycwallpaper -t;;
             *Theme*) nwg-look  > /dev/null 2>&1 ;;
-            *"Top bar modules"*) ycbar ;;
-            *Borders*) ycborders ;;
-            *Gaps*) ycgaps ;;
+            *"Top bar modules"*) ycbar -e ;;
+            *Borders*) ycborders -e ;;
+            *Gaps*) ycgaps -e ;;
             *) break ;;
         esac
     done
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnv" opt; do
+while getopts "ethnv" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         n) MUTE_NOTIFY=true ;;

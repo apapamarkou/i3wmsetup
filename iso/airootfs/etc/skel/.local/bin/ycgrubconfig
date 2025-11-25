@@ -172,7 +172,7 @@ displayMenu() {
         
         height=$(($(tput lines) - 1))
         
-        choice=$(echo -e "  Set Default Entry\n  $save_default_text\n  Set Timeout\n󱎫🎨 Timeout Style\n  Kernel Parameters\n󰦪  Log Level\n󰍹  GFX Mode\n  $recovery_text\n󰍝  $submenu_text\n  Reset to Defaults\n󰈆  $EXIT_TEXT" | fzf \
+        choice=$(echo -e "  Set Default Entry\n  $save_default_text\n  Set Timeout\n󱎫🎨 Timeout Style\n  Kernel Parameters\n󰦪  Log Level\n󰍹  GFX Mode\n  $recovery_text\n󰍝  $submenu_text\n  Reset to Defaults\n$EXIT_TEXT" | fzf \
             --layout=reverse \
             --prompt="⚙️  Select option > " \
             --height=$height)
@@ -196,11 +196,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "the" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

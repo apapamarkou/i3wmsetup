@@ -416,7 +416,7 @@ displayMenu() {
 
         # Get all users and add management option
         users=$(awk -F: '$3>=1000 && $3!=65534 {print $1}' /etc/passwd | grep -v '^_' | sort)
-        options=$(echo -e "$users\n  Add User\n󰌍  Back")
+        options=$(echo -e "$users\n  Add User\n$EXIT_TEXT")
         
         choice=$(echo "$options" | fzf \
             --layout=reverse \
@@ -430,7 +430,7 @@ displayMenu() {
         
         case "$choice" in
             *"Add User"*) addUser ;;
-            *"Back"*) return ;;
+            *"$EXIT_TEXT"*) return ;;
             *) editUser "$choice" ;;
         esac
     done
@@ -440,9 +440,11 @@ displayMenu() {
 export -f getUserInfo
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "eth" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

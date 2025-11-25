@@ -39,21 +39,21 @@ displayMenu() {
         height=$(($(tput lines) - 1))
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
 
-        choice=$(printf "󰍹  Monitor Configuration\n  Night Light\n󰈆  $EXIT_TEXT" | fzf --layout=reverse --prompt='  > ' --height=$height);        
+        choice=$(printf "󰍹  Monitor Configuration\n  Night Light\n$EXIT_TEXT" | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
             *Monitor*) nwg-displays >/dev/null 2>&1 & ;;
-            *Night*) ycnightlight ;;
+            *Night*) ycnightlight -e ;;
             *) exit 0 ;;
         esac
     done
 }
 
 OPEN_TERMINAL=false
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "the" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
@@ -63,6 +63,6 @@ done
 if [ "$OPEN_TERMINAL" = true ]; then
     openTerminal
     exit 0
-else
-    displayMenu
 fi
+
+displayMenu

@@ -37,22 +37,24 @@ displayMenu() {
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
-        choice=$(printf '󱡭  Audio Input\n󱡫  Audio Output\n  Volume Mixer\n  Sample Rate\n  Buffer Size\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);        
+        choice=$(printf "󱡭  Audio Input\n󱡫  Audio Output\n  Volume Mixer\n  Sample Rate\n  Buffer Size\n$EXIT_TEXT" | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
-            *Input*) ycsoundinput ;;
-            *Output*) ycsoundoutput ;;
-            *Mixer*) ycsoundmixer ;;
-            *Sample*) ycsamplerate ;;
-            *Buffer*) ycbuffersize ;;
+            *Input*) ycsoundinput -e ;;
+            *Output*) ycsoundoutput -e ;;
+            *Mixer*) ycsoundmixer -e ;;
+            *Sample*) ycsamplerate -e ;;
+            *Buffer*) ycbuffersize -e ;;
             *) return ;;  # Back ή κενή επιλογή
         esac
     done
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "th" opt; do
+while getopts "eth" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

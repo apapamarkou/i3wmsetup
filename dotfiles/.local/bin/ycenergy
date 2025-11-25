@@ -38,23 +38,23 @@ display_menu() {
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
 
-        choice=$(echo -e "⚡ Power Profiles\n󰤄  Autosuspend\n󰈆  $EXIT_TEXT" | fzf --layout=reverse --prompt="  > " --height=$height)
+        choice=$(echo -e "⚡ Power Profiles\n󰤄  Autosuspend\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in
-            *Profiles*) ycpowerprofiles ;;
-            *Autosuspend*) ycsuspend ;;
+            *Profiles*) ycpowerprofiles -e ;;
+            *Autosuspend*) ycsuspend -e ;;
             *) exit 0 ;;
         esac
     done
 }
 
 OPEN_TERMINAL=false
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "the" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) show_help; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

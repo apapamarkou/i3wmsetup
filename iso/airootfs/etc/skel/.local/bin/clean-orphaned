@@ -17,6 +17,6 @@ yprint --figlet -c "$DISTRO_NAME"
 echo
 yprint -c "You are about to clean unused packages"
 echo
-sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || echo 'No orphaned packages found'; 
+sudo pacman -Rns --noconfirm $(pacman -Qtdq) 2>/dev/null || echo 'No orphaned packages found'; 
 echo
 read -p "Press Enter to continue..."

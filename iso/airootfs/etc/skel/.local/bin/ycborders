@@ -22,11 +22,6 @@ TITLE="Configure Hyprland window borders"
 
 # --- Hyprland Specific Variables ---
 HYPRLAND_CONFIG_FILE="$HOME/.config/hypr/look.conf"
-# This function is a placeholder for yprint, which likely isn't available
-yprint() {
-    echo "$@"
-}
-# -----------------------------------
 
 showHelp() {
     echo "$TITLE"
@@ -40,8 +35,9 @@ showHelp() {
     echo "Arguments can be combined: -vn, -nv, etc."
 }
 
-# The openTerminal function is skipped as it relies on specific environment variables (LOCK_DIR, FLOATING_PREFIX)
-# and a 'terminal' command that isn't universally defined, making a direct Hyprland port complex without more context.
+openTerminal() {
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=61 --lines=18 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+}
 
 printMessage() {
     if [ "$MUTE_NOTIFY" = false ]; then
@@ -96,36 +92,30 @@ change() {
 
 get_current_border_setting() {
     # Get current border_size from config file, falling back to 0 if not found
-    local current_px=$(grep -oP '^\s*decoration:border_size\s*=\s*\K[0-9]+' "$HYPRLAND_CONFIG_FILE" 2>/dev/null | tail -n 1)
+    local current_px=$(grep -oP '^\s*border_size\s*=\s*\K[0-9]+' "$HYPRLAND_CONFIG_FILE" | tail -n 3)
     current_px=${current_px:-0} # Default to 0 if no value is found (which is borderless)
 
     case "$current_px" in
-        1) echo "Thin ($current_px)" ;;
-        2) echo "Normal ($current_px)" ;;
-        4) echo "Thick ($current_px)" ;;
-        0) echo "None ($current_px)" ;;
+        1) echo "Thin" ;;
+        2) echo "Normal" ;;
+        4) echo "Thick" ;;
+        0) echo "None" ;;
         *) echo "Custom ($current_px)" ;;
     esac
 }
 
 displayMenu() {
-    if ! command -v fzf &> /dev/null; then
-        echo "Error: fzf is required for the interactive menu but is not installed."
-        exit 1
-    fi
     
     while true; do
-        # clear
-        yprint -c --color=yellow "$TITLE"
-        
-        current_word=$(get_current_border_setting)
+        current_word="$(get_current_border_setting)"
 
-        yprint -c --color=green "Current border size: $current_word   (ESC to exit)"
+        yprint -c --color=yellow "$TITLE"
+        yprint -c --color=green "Current border size: $current_word"
 
         # relative fzf height by terminal height
         height=$(($(tput lines) - 2))
         
-        choice=$(echo -e "󰎦  Normal (2px)\n󰎩  Thin (1px)\n󰎬  Thick (4px)\n󰌍  Back" | fzf --layout=reverse --prompt="  Border Size > " --height=$height)
+        choice=$(echo -e "󰎦  Normal\n󰎩  Thin\n󰎬  Thick\n$EXIT_TEXT" | fzf --layout=reverse --prompt="  > " --height=$height)
         case "$choice" in
             *Normal*) change normal ;;
             *Thin*) change thin ;;
@@ -138,13 +128,12 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 SET_MONITOR=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvs:" opt; do
+while getopts "thnves:" opt; do
     case $opt in
-        t) 
-            echo "-t (Open in terminal) is not implemented in the Hyprland conversion." 
-            # OPEN_TERMINAL=true # Keep flag if future implementation is desired
-            ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
+        t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;
         v) MUTE_ECHO=true ;;
@@ -161,9 +150,9 @@ if [ -n "$SET" ]; then
     exit 0
 fi
 
+
 if [ "$OPEN_TERMINAL" = true ]; then
-    # if you want to implement the terminal open logic later, do it here
-    # openTerminal
+    openTerminal
     exit 0
 fi
 

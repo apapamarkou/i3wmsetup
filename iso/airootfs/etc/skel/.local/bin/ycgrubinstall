@@ -94,7 +94,7 @@ displayMenu() {
         
         local options="$drive_option"
         [[ -n "$SELECTED_DRIVE" ]] && options="$options\n  Install GRUB in $SELECTED_DRIVE"
-        options="$options\n󰈆  $EXIT_TEXT"
+        options="$options\n$EXIT_TEXT"
         
         height=$(($(tput lines) - 1))
         
@@ -121,11 +121,11 @@ displayMenu() {
 
 OPEN_TERMINAL=false
 DIRECT_DRIVE=""
-EXIT_TEXT="Exit"
+EXIT_TEXT="󰈆  Exit"
 
 while getopts "d:the" opt; do
     case $opt in
-        e) EXIT_TEXT="Back" ;;
+        e) EXIT_TEXT="󰌍  Back" ;;
         d) DIRECT_DRIVE="$OPTARG" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;

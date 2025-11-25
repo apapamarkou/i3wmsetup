@@ -42,18 +42,18 @@ display_menu() {
         [ -z "$choice" ] && exit 0
         
         case "$choice" in
-            *Display*) ycdisplay ;;
-            *Look*) yclook ;;
-            *Monitor*) ycsystemmonitor ;;
+            *Display*) ycdisplay -e ;;
+            *Look*) yclook -e ;;
+            *Monitor*) ycsystemmonitor -e ;;
             *Network*) netconf ;;
             *Bluetooth*) bluetoothwindow ;;
             *Terminal*) xfce4-terminal --preferences ;;
-            *Sound*) ycsound ;;
-            *Localization*) yclocalization ;;
-            *Maintenance*) ycsystem ;;
-            *Users/Groups*) ycusersandgroups ;;
-            *Energy*) ycenergy ;;
-            *Power*) ycpower ;;
+            *Sound*) ycsound -e ;;
+            *Localization*) yclocalization -e ;;
+            *Maintenance*) ycsystem -e ;;
+            *Users/Groups*) ycusersandgroups -e ;;
+            *Energy*) ycenergy -e ;;
+            *Power*) ycpower -e ;;
             *) exit 0 ;;
         esac
     done

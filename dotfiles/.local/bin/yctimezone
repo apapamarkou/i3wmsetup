@@ -56,7 +56,6 @@ change() {
 
 displayMenu() {
     while true; do
-        clear
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         
         # Get current timezone
@@ -67,19 +66,23 @@ displayMenu() {
         height=$(($(tput lines) - 2))
         
         # List available timezones and let user select
-        timezone=$(timedatectl list-timezones | fzf --layout=reverse --height=$height --prompt="  Select Timezone > ")
+        timezone=$(printf "$EXIT_TEXT\n$(timedatectl list-timezones)" | fzf --layout=reverse --height=5 --prompt="  Select Timezone > ")
         
         [ -z "$timezone" ] && exit 0
         
+        [[ "$timezone" = "$EXIT_TEXT" ]] && exit 0
+
         change "$timezone"
     done
 }
 
 OPEN_TERMINAL=false
 SET_TIMEZONE=""
+EXIT_TEXT="󰈆  Exit"
 
-while getopts "thnvs:" opt; do
+while getopts "ethnvs:" opt; do
     case $opt in
+        e) EXIT_TEXT="󰌍  Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         n) MUTE_NOTIFY=true ;;

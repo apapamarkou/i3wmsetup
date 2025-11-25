@@ -36,3 +36,21 @@
 (xfce4-terminal:370968): xfce4-terminal-WARNING **: 03:18:40.712: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
 
 (xfce4-terminal:373482): xfce4-terminal-WARNING **: 03:19:12.080: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:135563): xfce4-terminal-WARNING **: 10:41:41.289: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:137590): xfce4-terminal-WARNING **: 10:42:43.605: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:257686): xfce4-terminal-WARNING **: 11:47:05.872: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:270746): xfce4-terminal-WARNING **: 11:52:49.490: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:277518): xfce4-terminal-WARNING **: 11:54:01.895: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:290718): xfce4-terminal-WARNING **: 11:55:07.569: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:297607): xfce4-terminal-WARNING **: 11:56:18.992: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:300030): xfce4-terminal-WARNING **: 11:57:33.805: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined
+
+(xfce4-terminal:314866): xfce4-terminal-WARNING **: 12:00:46.651: Failed to connect to session manager: Failed to connect to the session manager: SESSION_MANAGER environment variable not defined

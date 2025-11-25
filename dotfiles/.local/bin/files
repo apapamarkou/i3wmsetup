@@ -13,4 +13,4 @@
 
 # TUI File Manager window launcher for YOUNIX desktop environment
 
-terminal --title="Files" nnn "$1"
+terminal --title="$DISTRO_NAME Files" nnn "$1"

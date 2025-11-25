@@ -80,23 +80,25 @@ displayMenu() {
 
         # Get all available groups and add management options
         all_groups=$(cut -d: -f1 /etc/group | sort)
-        options=$(echo -e "  Add Group\n󰌍  Back\n$all_groups")
+        options=$(echo -e "  Add Group\n󰈆  $EXIT_TEXT\n$all_groups")
         
         choice=$(echo "$options" | fzf --layout=reverse --prompt="  Select > " --height=$height)
         [ -z "$choice" ] && exit 0
         
         case "$choice" in
             *Group*) addGroup ;;
-            *Back*) exit 0 ;;
+            *$EXIT_TEXT*) exit 0 ;;
             *) removeGroup "$choice" ;;
         esac
     done
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="Exit"
 
-while getopts "thnv" opt; do
+while getopts "thnve" opt; do
     case $opt in
+        e) EXIT_TEXT="Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         n) MUTE_NOTIFY=true ;;

@@ -41,8 +41,8 @@ display_menu() {
         choice=$(printf ' Lock\n󰗽 Logout\n Reboot\n⏻ Poweroff\n Back' | fzf --layout=reverse --prompt=' System > ' --height=40%);
         
         case "$choice" in
-            *Lock*) i3lock ;;
-            *Logout*) i3-msg exit ;;
+            *Lock*) hyprlock ;;
+            *Logout*) hyprctl dispatch exit ;;
             *Reboot*) systemctl reboot ;;
             *Poweroff*) systemctl poweroff ;;
             *) exit 0 ;;

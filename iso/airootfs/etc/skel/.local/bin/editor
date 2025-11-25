@@ -11,6 +11,6 @@
 # Author: Andrianos Papamarkou
 # Email: papamarkoua@gmail.com
 
-# Text Editor winddow launcher for YOUNIX desktop environment
+# Text Editor window launcher for YOUNIX desktop environment
 
-terminal --columns=140 --lines=40 --title="$DDISTRO_NAME Text Editor" micro "$1"
+terminal --title="$DISTRO_NAME Text Editor" micro "$1"

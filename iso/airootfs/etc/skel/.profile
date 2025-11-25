@@ -4,8 +4,7 @@ export TEXT_EDITOR=micro
 export SHELL_GREETING=fetch
 export VISUAL=/usr/bin/micro
 export BROWSER=firefox
-export TERMINAL=xterm
-export TERM=xterm
+export TERMINAL=xfce4-terminal
 export PAGER="bat"
 export SYSTEM_MONITOR=htop
 export NETWORK_CONFIG=nmtui
@@ -29,7 +28,7 @@ export WALLPAPER_DIR=$HOME/Pictures/Wallpapers
 export NNN_USE_EDITOR=1
 export NNN_OPTS="adeHx"
 export NNN_COLORS="2345"
-export NNN_PLUG=f:fzcd;o:open;p:preview-tui;i:imgview;c:copyimg
+export NNN_PLUG=f:fzcd;
 export NNN_FIFO=/tmp/nnn.fifo
 export NNN_OPENER="xdg-open"
 
@@ -39,12 +38,11 @@ export PATH=$HOME/.local/bin/younix:$PATH
 export PATH=$HOME/bin:$PATH
 
 # theme related
-export XDG_CURRENT_DESKTOP="i3"
 # export QT_QPA_PLATFORMTHEME=qt6ct
 export QT_QPA_PLATFORMTHEME=gtk3
-# export QT_QPA_PLATFORMTHEME=xdgdesktopportal
 export QT_FONT_DPI=96
 export QT_QPA_FONTDIR=/usr/share/fonts
 export QT_ICON_THEME=Breeze-Dark
 
 # Language Settings
+export LANG="en_US.UTF-8"

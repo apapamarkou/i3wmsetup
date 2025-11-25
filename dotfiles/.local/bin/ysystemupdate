@@ -23,7 +23,7 @@ showHelp() {
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t           Open in terminal"
-    echo "  -m           Show icon for polybar (updates available or not)"
+    echo "  -m           Show icon for waybar (updates available or not)"
     echo "  -h           Show this help"
 }
 
@@ -113,7 +113,7 @@ displayMenu(){
     yprint --color=green "Checking Snap"
     snap_text=$(checkSnap)
     echo $snap_text
-    sleep 3
+    sleep 2
     
     # Build options array A-F
     OPTION_A="A) Update All"
@@ -181,13 +181,13 @@ if [ "$MONITOR_MODE" = true ]; then
     total_updates=$((REPO_UPDATES + AUR_UPDATES + FLATPAK_UPDATES + SNAP_UPDATES))
     
     if [ $total_updates -gt 0 ]; then
-        echo "%{T2}%{T-}"  # Updates available icon
+        echo ""  # Updates available icon
         ynotify "System Updates Available" \
                 "Repository: $REPO_UPDATES\nAUR: $AUR_UPDATES\nFlatpak: $FLATPAK_UPDATES\nSnap: $SNAP_UPDATES\n\nUse the   icon in top bar.\nLeft Click to open $DISTRO_NAME update\nRight click to open $DISTRO_NAME Software\n"  \
-                -t 1200 \
+                -t 12000 \
                 -l "$SCRIPT_NAME -t"
     else
-        echo "%{T2}%{T-}"  # No updates, empty output
+        echo ""  # No updates, empty output
     fi
     exit 0
 fi

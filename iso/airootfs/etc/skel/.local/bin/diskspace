@@ -13,6 +13,5 @@
 
 # Disk Space Explorer window launcher for YOUNIX desktop environment
 
-# Default system monitor is confirued in .profile
 SCRIPT_NAME=$(basename "$0")
 flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=140 --lines=40 --title="$FLOATING_PREFIX Disk Space Explorer" dua i

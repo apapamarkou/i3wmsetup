@@ -39,9 +39,9 @@ displayMenu() {
         height=$(($(tput lines) - 1))
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
 
-        choice=$(printf '󰍹  Monitor Configuration\n  Night Light\n  Back' | fzf --layout=reverse --prompt='  > ' --height=$height);        
+        choice=$(printf "󰍹  Monitor Configuration\n  Night Light\n󰈆  $EXIT_TEXT" | fzf --layout=reverse --prompt='  > ' --height=$height);        
         case "$choice" in
-            *Monitor*) arandr >/dev/null 2>&1 & ;;
+            *Monitor*) nwg-displays >/dev/null 2>&1 & ;;
             *Night*) ycnightlight ;;
             *) exit 0 ;;
         esac
@@ -49,9 +49,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="Exit"
 
-while getopts "th" opt; do
+while getopts "the" opt; do
     case $opt in
+        e) EXIT_TEXT="Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

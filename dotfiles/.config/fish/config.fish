@@ -1,4 +1,9 @@
 # ❯ Fancy Greeting (on shell startup)
+
+if test -f ~/.profile
+    bash -c "source ~/.profile"
+end
+
 function fish_greeting
     $SHELL_GREETING
 end

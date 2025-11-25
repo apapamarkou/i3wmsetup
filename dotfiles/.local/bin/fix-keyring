@@ -13,12 +13,13 @@
 
 # Update Keyring for YoUNiX desktop environment
 
-figlet "$DISTRO_NAME"
-
-echo -e "\e[33mUpdate Keyring\e[0m"
+yprint --figlet -c "$DISTRO_NAME"
+echo
+yprint -s "Update Keyring"
 echo
 
 sudo pacman -S archlinux-keyring; 
 sudo pacman-key --refresh-keys;
 
+echo
 read -p "Press Enter to continue..."

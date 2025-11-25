@@ -27,7 +27,7 @@ showHelp() {
 }
 
 openTerminal() {
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=61 --lines=18 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 notifyChange() {
@@ -118,10 +118,19 @@ displayMenu() {
         height=$(($(tput lines) - 2))
 
         yprint -c --color=yellow "$DISTRO_NAME Select language"
-        yprint -c --color=cyan "[Enter] to add or remove"
+        yprint -c --color=cyan "[Enter] to configure"
 
         # Select which locale variable to change
-        SELECTION=$(printf "%s\n" "${MENU_LIST[@]}" | fzf --prompt="  Select > " --height=$height --layout=reverse)
+        SELECTION=$(
+            {
+                printf "%s\n" "${MENU_LIST[@]}"
+                printf "󰈆  %s" "$EXIT_TEXT"
+            } | fzf --prompt="  Select > " --height=$height --layout=reverse
+        )
+        if [ "$SELECTION" = "󰈆  $EXIT_TEXT" ]; then
+            echo "Exiting script."
+            exit 0
+        fi
 
         # Exit if nothing selected
         [[ -z "$SELECTION" ]] && echo "No variable selected." && exit 0
@@ -145,9 +154,11 @@ displayMenu() {
 }
 
 OPEN_TERMINAL=false
+EXIT_TEXT="Exit"
 
-while getopts "th" opt; do
+while getopts "the" opt; do
     case $opt in
+        e) EXIT_TEXT="Back" ;;
         t) OPEN_TERMINAL=true ;;
         h) showHelp; exit 0 ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;

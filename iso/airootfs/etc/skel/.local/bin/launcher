@@ -13,4 +13,4 @@
 
 # Rofi Application Launcher for YOUNIX desktop environment
 
-rofi -show drun -theme ~/.config/rofi/themes/materia-dark.rasi -cycle false -scroll-method 1 -show-icons
+$APPLICATION_LAUNCHER

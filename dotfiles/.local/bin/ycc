@@ -27,7 +27,7 @@ show_help() {
 }
 
 open_terminal() {
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=55 --lines=17 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+    flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=55 --lines=17 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
 }
 
 display_menu() {
@@ -47,7 +47,7 @@ display_menu() {
             *Monitor*) ycsystemmonitor ;;
             *Network*) netconf ;;
             *Bluetooth*) bluetoothwindow ;;
-            *Terminal*) ycterminal ;;
+            *Terminal*) xfce4-terminal --preferences ;;
             *Sound*) ycsound ;;
             *Localization*) yclocalization ;;
             *Maintenance*) ycsystem ;;

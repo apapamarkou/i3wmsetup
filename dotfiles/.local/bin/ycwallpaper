@@ -20,6 +20,7 @@ TITLE="Wallpaper Picker"
 MUTE_NOTIFY=false
 MUTE_ECHO=false
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+WALLPAPER_CONF="$HOME/.config/hypr/wallpapers.conf" # Define config path once
 
 showHelp() {
     echo "$DISTRO_NAME $TITLE"
@@ -53,30 +54,144 @@ openTerminal() {
     local args=""
     [ "$MUTE_NOTIFY" = true ] && args="$args -n"
     [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=80 --lines=25 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=120 --lines=25 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
     echo "$FLOATING_PREFIX $TITLE"
 }   
 
 printMessage() {
     if [ "$MUTE_NOTIFY" = false ]; then
-        notify-send "Wallpaper set" "Wallpaper changed to $1."
+        notify-send "Wallpaper set" "$1"
     fi
     if [ "$MUTE_ECHO" = false ]; then
-        echo -e "Wallpaper set\nWallpaper changed to $1."
+        echo -e "Wallpaper set\n$1"
     fi
 }
 
+# --- NEW FUNCTION ---
+deleteHyprWallpaperConf() {
+    local monitor="$1"
+    
+    # Delete the line(s) containing the specific monitor's entry
+    sed -i "/^$monitor=/d" "$WALLPAPER_CONF"
+}
+# --- END NEW FUNCTION ---
+
 setWallpaper() {
     local wallpaper_path="$1"
-    if [ -f "$wallpaper_path" ]; then
-        feh --bg-fill "$wallpaper_path"
-        printMessage "$1"
+    local monitor
+
+    # Special check for 'NONE'
+    if [ "$wallpaper_path" = "NONE" ]; then
+        monitor=$(selectMonitor)
+
+        if [ "$monitor" = "*" ]; then
+            # Delete entries for all monitors
+            killall swaybg 2>/dev/null
+            > "$WALLPAPER_CONF" # Clear the entire config file
+            printMessage "Removed custom wallpaper for ALL monitors."
+        else
+            # Delete entry for specific monitor
+            deleteHyprWallpaperConf "$monitor"
+            printMessage "Removed custom wallpaper for monitor $monitor."
+        fi
+        
+        # Restore any remaining or default wallpapers
+        restoreAllMonitors
+
+    elif [ -f "$wallpaper_path" ]; then
+        monitor=$(selectMonitor)
+        updateHyprWallpaperConf "$monitor" "$wallpaper_path"
+        restoreAllMonitors
+        printMessage "Wallpaper changed to $wallpaper_path"
     else
         echo "Wallpaper file not found: $wallpaper_path"
     fi
 }
 
+updateHyprWallpaperConf() {
+    local monitor="$1"
+    local wallpaper="$2"
+    
+    # Αν δεν υπάρχει, φτιάξε το
+    [ ! -f "$WALLPAPER_CONF" ] && touch "$WALLPAPER_CONF"
+
+    # Διέγραψε παλιές entries wallpaper για αυτό το monitor (using the same logic as delete)
+    sed -i "/^$monitor=/d" "$WALLPAPER_CONF"
+
+    #  ρόσθεσε τη νέα
+    echo "$monitor=$wallpaper" >> "$WALLPAPER_CONF"
+}
+
+selectMonitor() {
+    #  αίρνει όλα τα monitor names από hyprctl
+    monitors=$(hyprctl monitors | sed -n 's/^Monitor \([^ ]*\).*/\1/p')
+
+    # Αν δεν βρεθούν monitors, βγες
+    if [ -z "$monitors" ]; then
+        echo "No monitors detected."
+        exit 1
+    fi
+
+    #  ροσθήκη επιλογής All monitors στην αρχή
+    menu=$(printf "All monitors\n%s" "$monitors")
+
+    # Επιλογή μέσω fzf
+    selected_monitor=$(echo "$menu" | fzf --prompt="Select monitor > ")
+
+    if [ -z "$selected_monitor" ]; then
+        echo "No monitor selected."
+        exit 1
+    fi
+
+    # Αν διάλεξε All monitors → επιστροφή '*'
+    if [ "$selected_monitor" = "All monitors" ]; then
+        echo "*"
+        return
+    fi
+
+    echo "$selected_monitor"
+}
+
+restoreAllMonitors() {
+    # Check if the config file exists
+    if [ ! -f "$WALLPAPER_CONF" ]; then
+        printMessage "Error: Wallpaper configuration file not found at $WALLPAPER_CONF."
+        return 1
+    fi
+
+    # Stop any running swaybg instances to start fresh
+    killall swaybg 2>/dev/null
+
+    # Read each line from the config file
+    while IFS='=' read -r monitor file; do
+        # Remove leading/trailing whitespace from key and value
+        local monitor=$(echo "$monitor" | xargs)
+        local file=$(echo "$file" | xargs)
+        
+        # Skip empty lines
+        [ -z "$monitor" ] && continue
+
+        if [ -f "$file" ]; then
+            # Set the wallpaper for the specific monitor
+            # Note: nohup is used here for daemonizing
+            nohup swaybg --output "$monitor" --image "$file" --mode fill &
+        else
+            printMessage "Warning: Stored wallpaper not found for $monitor: $file"
+        fi
+     
+    done < "$WALLPAPER_CONF"
+}
+
+findWallpapers() {
+    find \
+        /usr/share/backgrounds \
+        /usr/share/wallpapers \
+        "$HOME/Pictures/Wallpapers" \
+        -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null
+}
+
 displayMenu() {
+    
     if command -v chafa &>/dev/null; then
         PREVIEW_CMD='chafa --fill=block --size=40x20 {}'
     elif command -v timg &>/dev/null; then
@@ -88,10 +203,14 @@ displayMenu() {
     while true; do
         height=$(($(tput lines) - 1))
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
-        SELECTED=$(find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) \
-            | sed 's|^\./||' \
+        
+        # --- MODIFIED: Add 'None' option ---
+        WALLPAPERS=$(findWallpapers)
+        MENU_OPTIONS="(None) - Reset To Default Wallpaper\n$WALLPAPERS"
+
+        SELECTED=$(echo -e "$MENU_OPTIONS" \
             | fzf --layout=reverse --preview "$PREVIEW_CMD" \
-                --preview-window=right:60%:wrap \
+                --preview-window=right:40:wrap \
                 --prompt="  > " \
                 --height=$height \
                 --border
@@ -99,20 +218,27 @@ displayMenu() {
 
         [ -z "$SELECTED" ] && break
 
-        setWallpaper "$WALLPAPER_DIR/$SELECTED"
+        # --- MODIFIED: Handle 'None' selection ---
+        if [[ "$SELECTED" == "(None) - Reset Wallpaper" ]]; then
+            setWallpaper "NONE"
+        else
+            setWallpaper "$SELECTED"
+        fi
 
         chmod +x "$DEFAULT_SCRIPT"
     done
 }
 
 OPEN_TERMINAL=false
+RESTORE_MODE=false
 
-while getopts "thnv" opt; do
+while getopts "thnvr" opt; do
     case $opt in
         t) OPEN_TERMINAL=true ;;
         h) showHelp ;;
         n) MUTE_NOTIFY=true ;;
         v) MUTE_ECHO=true ;;
+        r) RESTORE_MODE=true ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
     esac
 done
@@ -123,5 +249,11 @@ if [ "$OPEN_TERMINAL" = true ]; then
     openTerminal
     exit 0
 fi
+
+if [ "$RESTORE_MODE" = true ]; then
+    restoreAllMonitors
+    exit 0
+fi
+
 
 displayMenu

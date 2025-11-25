@@ -15,103 +15,155 @@
 # YoUNiX Configure Night Light
 #
 
-MUTE_NOTIFY=false
-MUTE_ECHO=false
 SCRIPT_NAME=$(basename "$0")
-TITLE="Configure Night Light"
+TITLE="Nightlight"
+
+CONFIG="$HOME/.config/hypr/hyprsunset.conf"
+HYPR_CONFIG="$HOME/.config/hypr/autostart.conf"
+LINE_TO_TOGGLE="exec-once = hyprsunset"
 
 showHelp() {
     echo "$DISTRO_NAME $TITLE"
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
-    echo "  -t           Open in terminal"
-    echo "  -s STATE     Set night light (on/off)"
-    echo "  -h           Show this help"
-    echo "  -n           Show notification"
-    echo "  -v           Show console message"
-    echo "Arguments can be combined: -vn, -nv, etc."
+    echo "  -t    Open in terminal"
+    echo "  -m    Output on/off status (for Waybar)"
+    echo "  -s    Output start/end time (for Waybar tooltip)"
+    echo "  -h    Show this help"
+    exit 0
 }
 
 openTerminal() {
-    local args=""
-    [ "$MUTE_NOTIFY" = true ] && args="$args -n"
-    [ "$MUTE_ECHO" = true ] && args="$args -v"
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1 &
+    echo "1111"
+    nohup flock -n ~/.config/ylock/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME $args > /dev/null 2>&1
 }
 
-redshiftChange() {
-    case $1 in
-        on)
-            nohup start-geolocated-redshift > /dev/null 2>&1 &
-            sed -i '/#exec --no-startup-id start-geolocated-redshift/s/^#//' ~/.config/i3/conf.d/startup.conf
-            if [ "$MUTE_NOTIFY" = false ]; then
-                notify-send "Night light Enabled" "See the system tray.\nMay take a few seconds..."
-            fi
-            if [ "$MUTE_ECHO" = false ]; then
-                echo -e "Night light Enabled\nSee the system tray.\nMay take a few seconds..."
-            fi
-            ;;
-        off)
-            pkill redshift
-            # commend out the line "exec --no-startup-id start-geolocated-redshift" from .config/i3/conf.d/startup.conf
-            sed -i '/exec --no-startup-id start-geolocated-redshift/s/^/#/' ~/.config/i3/conf.d/startup.conf
-            if [ "$MUTE_NOTIFY" = false ]; then
-                notify-send "Night light Disabled" "Screen color temperature reset to default."
-            fi
-            if [ "$MUTE_ECHO" = false ]; then
-                echo -e "Night light Disabled\nScreen color temperature reset to default."
-            fi
-            ;;
-    esac
-    sleep 4
+printMessage() {
+    if [ "$MUTE_NOTIFY" = false ]; then
+        notify-send "$@"
+    fi
+    if [ "$MUTE_ECHO" = false ]; then
+        echo -e "$@"
+    fi
+}
+
+# --- Helpers for hyprsunset profile blocks ---
+
+# Read start/end times from profile blocks
+get_profile_times() {
+    start_time=$(awk '/profile/{p++} p==1 && /time/ {print $3; exit}' "$CONFIG")
+    end_time=$(awk '/profile/{p++} p==2 && /time/ {print $3; exit}' "$CONFIG")
+}
+
+# Update time in start/end profile
+update_profile_time() {
+    local which=$1
+    local new_time=$2
+    if [ "$which" = "start" ]; then
+        awk -v new="$new_time" '
+        /profile/{p++}
+        p==1 && /time/ {$3=new}
+        {print}
+        ' "$CONFIG" > "${CONFIG}.tmp" && mv "${CONFIG}.tmp" "$CONFIG"
+    else
+        awk -v new="$new_time" '
+        /profile/{p++}
+        p==2 && /time/ {$3=new}
+        {print}
+        ' "$CONFIG" > "${CONFIG}.tmp" && mv "${CONFIG}.tmp" "$CONFIG"
+    fi
+}
+
+is_running() {
+    pgrep -x hyprsunset >/dev/null
+}
+
+select_time() {
+    local which=$1
+    get_profile_times
+    local current=$( [ "$which" = "start" ] && echo "$start_time" || echo "$end_time" )
+    local hours=$(seq -w 0 23)
+    local hour=$(printf "%s\n" "${hours[@]}" | fzf --prompt="Select $which time [$current]> " --select-1 --exit-0)
+    if [ -n "$hour" ]; then
+        # Optional: allow minutes
+        read -p "Minutes (00-59, default 00): " mins
+        mins=${mins:-00}
+        update_profile_time "$which" "$hour:$mins"
+    fi
 }
 
 displayMenu() {
-    while true; do
-        clear
-        yprint -c --color=yellow "$DISTRO_NAME $TITLE"
-        # relative fzf height by terminal height
-        height=$(($(tput lines) - 2))
-        # show current state
-        if [ -n "$(pgrep redshift)" ]; then
-            yprint -c --color=green "󰞏  Night light is enabled"
-        else
-            yprint -c --color=red "󱜞  Night light is disabled"
-        fi
-        choice=$(echo -e "󰞏  Enable\n󱜞  Disable\n󰌍  Back" | fzf --layout=reverse --height=$height --prompt="  > ")
-        case $choice in
-            *Enable*) redshiftChange on ;;
-            *Disable*) redshiftChange off ;;
-            *) exit 0 ;;
-        esac
-    done
+    clear
+    yprint -c --color=yellow "$DISTRO_NAME $TITLE"
+    height=$(($(tput lines) - 2))
+    get_profile_times
+    local running=$(is_running && echo "  Disable nightlight" || echo "  Enable nightlight")
+    local condition=$(is_running && echo "Nightlight is enabled" || echo "Nightlight is disabled")
+    yprint -c --color=green "$condition"
+
+    local choice=$(printf "%s\n󰅕  Start Time: %s\n󰨿  End Time: %s\n󰈆  Exit\n" "$running" "$start_time" "$end_time" | 
+    fzf --layout=reverse --prompt="  > " --height=$height )
+
+    case "$choice" in
+        *"Enable nightlight"*)
+            systemctl --user enable --now hyprsunset > /dev/null 2>&1
+            sed -i "s/^#*[[:space:]]*$(echo "$LINE_TO_TOGGLE" | sed 's/[\/&]/\\&/g')/$LINE_TO_TOGGLE/" "$HYPR_CONFIG"
+            ;;
+        *"Disable nightlight"*)
+            systemctl --user disable --now hyprsunset > /dev/null 2>&1
+            sed -i "/^[^#]*$(echo "$LINE_TO_TOGGLE" | sed 's/[\/&]/\\&/g')/s/^/#/" "$HYPR_CONFIG"
+            ;;
+        *"Start Time:"*)
+            select_time "start"
+            ;;
+        *"End Time:"*)
+            select_time "end"
+            ;;
+        *)
+            systemctl --user restart --now hyprsunset > /dev/null 2>&1
+            exit 0
+            ;;
+    esac
+
+    displayMenu
 }
 
+# --- Standard YoUNiX argument parsing ---
 OPEN_TERMINAL=false
-SET_STATE=""
+WAYBAR_STATUS=false
+WAYBAR_TOOLTIP=false
 
-while getopts "thnvs:" opt; do
+while getopts "thmsv" opt; do
     case $opt in
         t) OPEN_TERMINAL=true ;;
-        h) showHelp; exit 0 ;;
-        n) MUTE_NOTIFY=true ;;
-        v) MUTE_ECHO=true ;;
-        s) SET_STATE="$OPTARG" ;;
+        m) WAYBAR_STATUS=true ;;
+        s) WAYBAR_TOOLTIP=true ;;
+        h) showHelp ;;
         \?) echo "Invalid option. Use -h for help."; exit 1 ;;
     esac
 done
 
-if [ -n "$SET_STATE" ]; then
-    case "$SET_STATE" in
-        on|off) redshiftChange "$SET_STATE" ;;
-        *) echo "Invalid state. Use 'on' or 'off'."; exit 1 ;;
-    esac
+# --- Waybar output ---
+if [ "$WAYBAR_STATUS" = true ]; then
+    if is_running; then
+        echo "󰛨"
+    else
+        echo "󰹏"
+    fi
     exit 0
 fi
 
+if [ "$WAYBAR_TOOLTIP" = true ]; then
+    get_profile_times
+    echo -e "\nStart time: $start_time\nEnd time: $end_time\n"
+    exit 0
+fi
+
+# --- Terminal mode ---
 if [ "$OPEN_TERMINAL" = true ]; then
     openTerminal
     exit 0
 fi
 
+# --- Default: interactive menu ---
 displayMenu

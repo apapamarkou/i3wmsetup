@@ -30,7 +30,7 @@ showHelp() {
 }
 
 openTerminal() {
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME  > /dev/null 2>&1
 }
 
 displayMenu() {
@@ -39,12 +39,11 @@ displayMenu() {
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         # relative fzf height by terminal height
         height=$(($(tput lines) - 1))
-        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰛖  Font Size\n󰎟  Notifications\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height )
+        choice=$(echo -e "󰸉  Wallpaper\n󰔎  Theme\n󰕳  Top bar modules\n󱁐  Gaps\n  Window Borders\n󰌍  Back" | fzf --layout=reverse --prompt="  > " --height=$height )
         case $choice in
             *Wallpaper*) ycwallpaper -t;;
-            *Theme*) yctheme ;;
-            *Font*) ycfont ;;
-            *Notifications*) ycnotifications ;;
+            *Theme*) nwg-look  > /dev/null 2>&1 ;;
+            *"Top bar modules"*) ycbar ;;
             *Borders*) ycborders ;;
             *Gaps*) ycgaps ;;
             *) break ;;

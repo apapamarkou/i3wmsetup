@@ -25,6 +25,7 @@ showHelp() {
     echo "Usage: $SCRIPT_NAME [OPTIONS]"
     echo "Options:"
     echo "  -t    Open in terminal"
+    echo "  -r    re-scan applications"
     echo "  -h    Show this help"
 }
 
@@ -78,6 +79,11 @@ scan_apps() {
 # Get apps from cache or scan if not exists
 get_apps() {
     if [ ! -f "$APPS_FILE" ]; then
+        clear
+        yprint -c --figlet "$DISTRO_NAME $SCRIPT_NAME"
+        echo
+        yprint --color=yellow -c "yapps is updating application list..."
+        echo
         scan_apps
     fi
     cat "$APPS_FILE"

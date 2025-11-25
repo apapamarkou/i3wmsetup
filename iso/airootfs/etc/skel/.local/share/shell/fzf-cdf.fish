@@ -2,8 +2,15 @@ function cdf
     # Αν έχει δοθεί όρισμα, χρησιμοποίησέ το — αλλιώς το τρέχον directory
     set DIR (or $argv (pwd))
 
-    # Βρες όλους τους φακέλους recursively από εκεί και κάτω
-    set DIRS (find $DIR -type d 2>/dev/null)
+    # Βρες όλους τους φακέλους recursively από εκεί και κάτω, ΕΞΑΙΡΩΝΤΑΣ
+    # τους .cache και .mozilla, καθώς και τους υποφακέλους τους.
+    # Η δομή αυτή αποκλείει τα ονόματα των φακέλων από την έξοδο (-prune)
+    # και ταυτόχρονα δεν επιτρέπει στην find να μπει μέσα τους.
+    set DIRS (find $DIR \
+        -type d \
+        ! -path '*/.cache*' \
+        ! -path '*/.mozilla*' \
+        -print 2>/dev/null)
 
     if test (count $DIRS) -eq 0
         echo "No directories found in $DIR"

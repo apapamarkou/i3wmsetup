@@ -29,7 +29,7 @@ echo -e "${GREEN}╭────────────────────
 
 # 👤 User / Host
 printf "${GREEN}│${YELLOW}  User: ${RESET}%s\n" "$(whoami)"
-printf "${GREEN}│${YELLOW}  Host: ${RESET}%s\n" "$(hostname)"
+printf "${GREEN}│${YELLOW}  Host: ${RESET}%s\n" "$(cat /etc/hostname)"
 
 # 🧠 Memory
 if command -v free >/dev/null 2>&1; then
@@ -49,22 +49,22 @@ if command -v lspci >/dev/null 2>&1; then
     printf "${GREEN}│${YELLOW}  GPU: ${RESET}%s\n" "$gpu"
 fi
 
-# 💽 Disk
+# Disk
 if command -v df >/dev/null 2>&1; then
     disk=$(df -h / | awk 'NR==2 {print $3 " / " $2 " (" $5 ")"}')
     printf "${GREEN}│${YELLOW}  Disk: ${RESET}%s\n" "$disk"
 fi
 
-# 🕒 Uptime
+# Uptime
 printf "${GREEN}│${YELLOW}  Uptime: ${RESET}%s\n" "$(uptime -p | sed 's/up //')"
 
-#  OS
+# OS
 if [[ -f /etc/os-release ]]; then
     . /etc/os-release
     printf "${GREEN}│${YELLOW}  OS: ${RESET}%s %s\n" "$NAME" "$VERSION_ID"
 fi
 
-# 🐚 Shell
+# Shell
 printf "${GREEN}│${YELLOW}  Shell: ${RESET}%s\n" "$SHELL"
 
 printf "${GREEN}╰────────────────────────────────────────────────╯"

@@ -22,17 +22,16 @@ MODE=${1:-region}
 
 case "$MODE" in
     fullscreen)
-        maim | tee "$FILE" | xclip -selection clipboard -t image/png
+        grim "$FILE" && wl-copy < "$FILE"
         ;;
 
     region)
-        maim -s | tee "$FILE" | xclip -selection clipboard -t image/png
+        grim -g "$(slurp)" "$FILE" && wl-copy < "$FILE"
         ;;
 
     window)
         # Active window
-        WIN_ID=$(xdotool getactivewindow)
-        maim -i "$WIN_ID" | tee "$FILE" | xclip -selection clipboard -t image/png
+        grim -g "$(hyprctl activewindow -j | jq -r '.at[0],.at[1],.size[0],.size[1]' | tr '\n' ',' | sed 's/,$//' | sed 's/,/ /g' | awk '{print $1","$2" "$3"x"$4}')" "$FILE" && wl-copy < "$FILE"
         ;;
 
     *)

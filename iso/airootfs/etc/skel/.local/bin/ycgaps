@@ -21,10 +21,12 @@ SCRIPT_NAME=$(basename "$0")
 TITLE="Configure Hyprland window gaps"
 
 Tight=2
+Tight_out=4
 Separated=5
+Separated_out=10
 Loose=10
+Loose_out=20
 
-# --- Hyprland Specific Variables ---
 HYPRLAND_CONFIG_FILE="$HOME/.config/hypr/look.conf"
 
 showHelp() {
@@ -59,15 +61,15 @@ change() {
     case "$set_name" in
         tight)
             gap_in_size=$Tight
-            gap_out_size=4
+            gap_out_size=$Tight_out
             ;;
         separated)
             gap_in_size=$Separated
-            gap_out_size=10
+            gap_out_size=$Separated_out
             ;;
         loose)
             gap_in_size=$Loose
-            gap_out_size=20
+            gap_out_size=$Loose_out
             ;;
         *)
             echo "Invalid gap setting: $set_name. Use 'tight', 'separated', or 'loose'."

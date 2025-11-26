@@ -1,3 +1,0 @@
-# Get packages
-
-pacman -Qqen > official_pkglist.txt

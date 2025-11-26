@@ -6,7 +6,7 @@ export VISUAL=/usr/bin/micro
 export BROWSER=chromium
 export TERMINAL=xfce4-terminal
 export PAGER="bat"
-export SYSTEM_MONITOR=top
+export SYSTEM_MONITOR=htop
 export NETWORK_CONFIG=nmtui
 export SOUND_CONFIG=alsamixer
 export MUSIC_PLAYER=fzf-music-player
@@ -46,3 +46,4 @@ export QT_ICON_THEME=Breeze-Dark
 
 # Language Settings
 export LANG="en_US.UTF-8"
+export LC_MONETARY="en_US.UTF-8"

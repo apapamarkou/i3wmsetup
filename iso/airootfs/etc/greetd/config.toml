@@ -2,5 +2,5 @@
 vt = 1
 
 [default_session]
-command = "/usr/bin/tuigreet --remember"
+command = "/usr/local/bin/starthypr"
 user = "user"

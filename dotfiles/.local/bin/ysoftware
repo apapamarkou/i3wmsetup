@@ -39,6 +39,10 @@ refreshPackages() {
     mkdir -p "$CONFIG_DIR"
     
     echo
+    echo "Syncing package databases..."
+    sudo pacman -Sy --noconfirm >/dev/null 2>&1
+
+    echo
     echo "Fetching official packages..."
     if pacman -Slq > "$PACKAGE_INFO.tmp" 2>/dev/null; then
         yprint --color=green "Official packages fetched successfully"

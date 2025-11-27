@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Greetd Wrapper for : login shell + hyprland
+
+# check if it is a login shell to prevent infinite loop
+if [ -z "$HYPRLAND_STARTED" ]; then
+    export HYPRLAND_STARTED=1
+    # Φορτώνει login environment
+    exec bash -l -c 'exec Hyprland'
+fi
+

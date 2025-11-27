@@ -96,35 +96,34 @@ runInTerminal() {
 }
 
 displayMenu(){
-    
-    # Check all sources and show progress
-    yprint --color=green "Checking Arch repositories"
-    repo_text=$(checkRepos)
-    echo $repo_text
-    echo
-    yprint --color=green "Checking AUR"
-    aur_text=$(checkAUR)
-    echo $aur_text
-    echo
-    yprint --color=green "Checking Flatpak"
-    flatpak_text=$(checkFlatpak)
-    echo $flatpak_text
-    echo
-    yprint --color=green "Checking Snap"
-    snap_text=$(checkSnap)
-    echo $snap_text
-    sleep 2
-    
-    # Build options array A-F
-    OPTION_A="A) Update All"
-    OPTION_B="B) $repo_text"
-    OPTION_C="C) $aur_text"
-    OPTION_D="D) $flatpak_text"
-    OPTION_E="E) $snap_text"
-    OPTION_F="$EXIT_TEXT"
-
-    options=("$OPTION_A" "$OPTION_B" "$OPTION_C" "$OPTION_D" "$OPTION_E" "$OPTION_F")
     while true; do
+        # Check all sources and show progress
+        yprint --color=green "Checking Arch repositories"
+        repo_text=$(checkRepos)
+        echo $repo_text
+        echo
+        yprint --color=green "Checking AUR"
+        aur_text=$(checkAUR)
+        echo $aur_text
+        echo
+        yprint --color=green "Checking Flatpak"
+        flatpak_text=$(checkFlatpak)
+        echo $flatpak_text
+        echo
+        yprint --color=green "Checking Snap"
+        snap_text=$(checkSnap)
+        echo $snap_text
+        sleep 2
+        
+        # Build options array A-F
+        OPTION_A="A) Update All"
+        OPTION_B="B) $repo_text"
+        OPTION_C="C) $aur_text"
+        OPTION_D="D) $flatpak_text"
+        OPTION_E="E) $snap_text"
+        OPTION_F="$EXIT_TEXT"
+
+        options=("$OPTION_A" "$OPTION_B" "$OPTION_C" "$OPTION_D" "$OPTION_E" "$OPTION_F")
         height=$(($(tput lines) - 1))
         yprint -c --color=yellow "$DISTRO_NAME $TITLE"
         choice=$(printf "%s\n" "${options[@]}" | fzf --layout=reverse --prompt="  Select > " --height=$height)

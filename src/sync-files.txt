@@ -6,7 +6,6 @@
 .config/nnn
 .config/nwg-look
 .config/pipewire
-.config/qt6ct
 .config/swaync
 .config/systemd
 .config/waybar

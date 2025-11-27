@@ -35,31 +35,37 @@ openTerminal() {
 
 refreshPackages() {
     echo
-    echo "Refreshing package database..."
+    yprint --color=yellow "Refreshing package database..."
     mkdir -p "$CONFIG_DIR"
-    
+
     echo
-    echo "Syncing package databases..."
+    yprint --color=yellow "Syncing package databases..."
     sudo pacman -Sy --noconfirm >/dev/null 2>&1
 
+    clear
     echo
     echo "Fetching official packages..."
     if pacman -Slq > "$PACKAGE_INFO.tmp" 2>/dev/null; then
         yprint --color=green "Official packages fetched successfully"
+        sleep 2
     else
         yprint --color=red "Warning: Failed to fetch official packages"
         touch "$PACKAGE_INFO.tmp"
         ERRORS=true
+        sleep 2
     fi
-    
+
+    clear
     echo
     if command -v yay >/dev/null 2>&1; then
         echo "Fetching AUR packages..."
         if yay -Slq --aur | sed 's/^/AUR:/' >> "$PACKAGE_INFO.tmp" 2>/dev/null; then
             yprint --color=green "AUR packages fetched successfully"
+            sleep 2
         else
             yprint --color=red "Warning: Failed to fetch AUR packages (service may be unavailable)"
             ERRORS=true
+            sleep 2
         fi
     fi
     

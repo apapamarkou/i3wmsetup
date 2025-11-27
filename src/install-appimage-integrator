@@ -25,5 +25,5 @@ if [[ $confirm =~ ^[Nn]$ ]]; then
 fi
 
 
-sudo pacman -S --needed --no-confirm inotify-tools git wget
+sudo pacman -S --needed --noconfirm inotify-tools git wget
 wget -qO- https://raw.githubusercontent.com/apapamarkou/appimage-integrator/main/src/appimage-integrator-install-git | bash

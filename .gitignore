@@ -1,0 +1,10 @@
+# ArchISO build folders
+work/
+out/
+
+# pacman cache (αν είναι μέσα στο repo, optional)
+archiso-cache/pkg/
+
+# προσωρινά αρχεία
+*.tmp
+*.swp

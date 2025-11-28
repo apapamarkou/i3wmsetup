@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=YoUNiX
+Description=YoUNiX Boot Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/younix
+ScriptFile=/usr/share/plymouth/themes/younix/younix.script

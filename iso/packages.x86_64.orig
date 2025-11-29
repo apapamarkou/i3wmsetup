@@ -125,3 +125,6 @@ xorg-xrandr
 xfsprogs
 xl2tpd
 zsh
+
+plymouth
+plymouth-theme-arch-logo

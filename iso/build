@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Starting mkarchiso (fast build)..."
+echo "Cleaning previous build and pacman locks..."
+sudo rm -rf work/ out/
+sudo rm -f /var/lib/pacman/db.lck
+sudo pacman -Syy
 
-sudo mkarchiso -v \
-  -w work \
-  -o out \
-  --pkg-cache ~/archiso-cache/pkg \
-  .
+echo "Starting mkarchiso build..."
+export MKARCHISO_PKG_CACHE=./archiso-cache/pkg
+sudo mkarchiso -v -w work -o out .
 
-echo "Build complete!"
+echo "✅ Build complete! ISO is in 'out/'"
+

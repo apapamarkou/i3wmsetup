@@ -8,8 +8,11 @@ iso_application="Younix Live/Rescue DVD"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="younix"
 buildmodes=('iso')
-bootmodes=('bios.syslinux'
-           'uefi.systemd-boot')
+# bootmodes=('bios.syslinux'
+#            'uefi.systemd-boot')
+bootmodes=('bios.syslinux' 'uefi.grub')
+
+grub_cfg="grub/grub.cfg"
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')
@@ -26,3 +29,7 @@ file_permissions=(
   ["/etc/skel/.local/bin/*"]="0:0:755"
   ["/etc/skel/.local/bin/appimage-integrator/*"]="0:0:755"
 )
+
+airootfs_post() {
+    mkinitcpio -P
+}

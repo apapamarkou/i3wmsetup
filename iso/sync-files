@@ -38,7 +38,7 @@ done < "$SKEL_FILE"
 DEST="$SCRIPT_DIR/airootfs/usr/local/bin"
 SOURCE="$HOME/.local/bin"
 echo "Syncing to airootfs/usr/local/bin: $SOURCE/* -> $DEST"
-sudo rsync -a --delete "$SOURCE/"* "$DEST/"
+sudo rsync -a "$SOURCE/"* "$DEST/"
 
 # sync /etc/environment
 echo "Syncing to airootfs/etc/environment: /etc/environment"

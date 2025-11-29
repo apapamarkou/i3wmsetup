@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script syncs specified files from home directory to the dotfiles directory
+# and it is ment to use by the developers of this project
+
+SCRIPT_DIR="$(pwd)"
+SKEL_FILE="$SCRIPT_DIR/sync-skel.txt"
+SKEL="$SCRIPT_DIR/airootfs/etc/skel"
+
+# copy SKEL files
+while IFS= read -r path || [ -n "$path" ]; do
+    # Skip blank lines and comments
+    [[ -z "${path// }" || "${path:0:1}" == "#" ]] && continue
+
+    SRC="$HOME/$path"
+
+    if [ -e "$SRC" ]; then
+        # copy to skel
+        echo "Syncing to skel: $SRC -> $SKEL"
+        sudo rsync -a --delete --relative "$HOME/./$path" "$SKEL"
+    else
+        echo "⚠️ Missing: $SRC"
+    fi
+done < "$SKEL_FILE"
+
+# sync $HOME/.local/bin/* to airootfs/usr/local/bin
+LOCAL_BIN="$SCRIPT_DIR/airootfs/usr/local/bin"
+echo "Syncing to $LOCAL_BIN: $HOME/.local/bin/*"
+sudo rsync -a --delete "$HOME/.local/bin/" "$LOCAL_BIN/"
+# sync /etc/profile
+echo "Syncing to airootfs/etc/profile: /etc/profile"
+sudo rsync -a --delete /etc/environment "$SCRIPT_DIR/airootfs/etc/"

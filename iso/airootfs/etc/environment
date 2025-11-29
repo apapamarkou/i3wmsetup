@@ -1,0 +1,34 @@
+#
+# This file is parsed by pam_env module
+#
+# Syntax: simple "KEY=VAL" pairs on separate lines
+#
+EDITOR=editor
+TEXT_EDITOR=micro
+SHELL_GREETING=fetch
+VISUAL=/usr/bin/micro
+BROWSER=chromium
+TERMINAL=xfce4-terminal
+PAGER="bat"
+SYSTEM_MONITOR=htop
+NETWORK_CONFIG=nmtui
+SOUND_CONFIG=alsamixer
+MUSIC_PLAYER=fzf-music-player
+FILE_MANAGER=files
+APPLICATION_LAUNCHER="yapps -t"
+CONTROL_PANEL="ycc -t"
+DISTRO_NAME=YoUNiX
+FLOATING_PREFIX=":YoUNiX"
+
+NNN_USE_EDITOR=1
+NNN_OPTS="adeHx"
+NNN_COLORS="2345"
+NNN_PLUG=f:fzcd;
+NNN_FIFO=/tmp/nnn.fifo
+NNN_OPENER="xdg-open"
+
+QT_QPA_PLATFORMTHEME=gtk3
+QT_FONT_DPI=96
+QT_QPA_FONTDIR=/usr/share/fonts
+QT_ICON_THEME=Breeze-Dark
+

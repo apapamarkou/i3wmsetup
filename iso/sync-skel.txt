@@ -14,7 +14,7 @@
 .config/ylock
 .config/mimeapps.list
 
-.local/bin
+# .local/bin
 .local/share/applications/img-view.desktop
 .local/share/applications/text-edit.desktop
 .local/share/nwg-look

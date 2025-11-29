@@ -1,0 +1,4 @@
+chmod -R 755 /usr/local/bin/*
+chmod 755 /etc/skel/.local/bin/appimage-integrator/*
+
+# mkinitcpio -P

@@ -29,7 +29,3 @@ file_permissions=(
   ["/etc/skel/.local/bin/*"]="0:0:755"
   ["/etc/skel/.local/bin/appimage-integrator/*"]="0:0:755"
 )
-
-airootfs_post() {
-    mkinitcpio -P
-}

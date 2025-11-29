@@ -34,10 +34,12 @@ while IFS= read -r path || [ -n "$path" ]; do
     fi
 done < "$SKEL_FILE"
 
-# sync $HOME/.local/bin/* to airootfs/usr/local/bin
-LOCAL_BIN="$SCRIPT_DIR/airootfs/usr/local/bin"
-echo "Syncing to $LOCAL_BIN: $HOME/.local/bin/*"
-sudo rsync -a --delete "$HOME/.local/bin/" "$LOCAL_BIN/"
-# sync /etc/profile
-echo "Syncing to airootfs/etc/profile: /etc/profile"
+# sync $HOME/.local/bin/* to airootfs/usr/local/bin no subfolders
+DEST="$SCRIPT_DIR/airootfs/usr/local/bin"
+SOURCE="$HOME/.local/bin"
+echo "Syncing to airootfs/usr/local/bin: $SOURCE/* -> $DEST"
+sudo rsync -a --delete "$SOURCE/"* "$DEST/"
+
+# sync /etc/environment
+echo "Syncing to airootfs/etc/environment: /etc/environment"
 sudo rsync -a --delete /etc/environment "$SCRIPT_DIR/airootfs/etc/"
